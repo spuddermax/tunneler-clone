@@ -27,7 +27,7 @@ function startGame() {
   const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 1920,
+    width: 3840,
     height: 1080,
     physics: {
       default: 'arcade',
@@ -64,16 +64,16 @@ class BootScene extends Phaser.Scene {
 
   preload() {
     // Load assets here
-	this.load.image('bush1', 'images/bush1.png');
-	this.load.image('bush2', 'images/bush2.png');
-	this.load.image('bush3', 'images/bush3.png');
-	this.load.image('bush4', 'images/bush4.png');
-    this.load.image('tank1', 'images/tank_grey.png');
+	  this.load.image('bush1', 'images/bush1.png');
+	  this.load.image('bush2', 'images/bush2.png');
+	  this.load.image('bush3', 'images/bush3.png');
+	  this.load.image('bush4', 'images/bush4.png');
+	  this.load.image('tank1', 'images/tank_grey.png');
     this.load.image('tank2', 'images/tank_red.png');
     this.load.image('bullet', 'images/bullet.png');
     this.load.image('base', 'images/base.png');
     this.load.image('explosion', 'images/explosion2.gif');
-	this.load.image('world_floor', 'images/world_floor.png');
+	  this.load.image('world_floor', 'images/world_floor.png');
   }
 
   create() {
@@ -194,15 +194,15 @@ class BootScene extends Phaser.Scene {
     const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
     // Create bases at fixed positions within the specified areas
-	// Set base 1 at a random position within the left 25% of the screen
-	const randomX1 = Phaser.Math.Between(0, this.game.config.width / 4);
-	const randomY1 = Phaser.Math.Between(0, this.game.config.height);
-    this.base1 = this.physics.add.staticSprite(randomX1, randomY1, 'base');
+	  // Set base 1 at a random position within the left 25% of the screen. Use absolute values to avoid overlap with the edge of the world.
+	  const randomX1 = Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth);
+	  const randomY1 = Phaser.Math.Between(0, this.game.config.height - baseWidth);
+	  this.base1 = this.physics.add.staticSprite(randomX1, randomY1, 'base');
 	
-	// Set base 2 at a random position within the right 25% of the screen
-	const randomX2 = Phaser.Math.Between(this.game.config.width * 3 / 4, this.game.config.width);
-	const randomY2 = Phaser.Math.Between(0, this.game.config.height);
-    this.base2 = this.physics.add.staticSprite(randomX2, randomY2, 'base');
+	// Set base 2 at a random position within the right 25% of the screen, but not overlapping the edge of the world
+	  const randomX2 = Phaser.Math.Between(this.game.config.width * 3 / 4, this.game.config.width - baseWidth);
+	  const randomY2 = Phaser.Math.Between(0, this.game.config.height - baseWidth);
+	  this.base2 = this.physics.add.staticSprite(randomX2, randomY2, 'base');
 
     // Set the display size of the bases
     this.base1.setDisplaySize(baseWidth, baseWidth); // Set the size of base1
@@ -431,11 +431,16 @@ class BootScene extends Phaser.Scene {
     tank.disableBody(true, true);
   }
 
+  // Reset tank to the center of its base
   resetTank(tank, tankName) {
     if (tankName === 'tank1') {
       tank.enableBody(true, 50, 300, true, true);
+      tank.x = this.base1.x;
+      tank.y = this.base1.y;
     } else {
       tank.enableBody(true, 750, 300, true, true);
+      tank.x = this.base2.x;
+      tank.y = this.base2.y;
     }
   }
 
