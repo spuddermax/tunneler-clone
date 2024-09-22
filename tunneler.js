@@ -27,8 +27,8 @@ function startGame() {
   const config = {
     type: Phaser.AUTO,
     parent: 'game-container',
-    width: 2400,
-    height: 1200,
+    width: 1920,
+    height: 1080,
     physics: {
       default: 'arcade',
       arcade: {
@@ -42,10 +42,10 @@ function startGame() {
   const game = new Phaser.Game(config);
 
   // Set the bushWidth, tankWidth, bulletWidth, and baseWidth in the game config after the game instance is created
-  game.config.bushWidth = 12; // Set bush width in config
-  game.config.tankWidth = 32; // Set tank width in config
-  game.config.bulletWidth = 4; // Set bullet width in config
-  game.config.baseWidth = 100; // Set base width in config (adjust as needed)
+  game.config.bushWidth = 24; // Set bush width in config
+  game.config.tankWidth = 72; // Set tank width in config
+  game.config.bulletWidth = 8; // Set bullet width in config
+  game.config.baseWidth = 400; // Set base width in config (adjust as needed)
   game.config.tankDamage = 10; // Set tank damage percentage when hit
 }
 
@@ -77,8 +77,10 @@ class BootScene extends Phaser.Scene {
   }
 
   create() {
-    // Set the tiled background
-    this.add.tileSprite(832, 326, 2400, 1200, 'world_floor'); // Center the tiled background
+    // Set the tiled background based on the world size
+    const worldWidth = this.game.config.width;
+    const worldHeight = this.game.config.height;
+    this.add.tileSprite(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, 'world_floor'); // Center the tiled background
 
     // Create bases first
     this.createBases();
@@ -101,10 +103,10 @@ class BootScene extends Phaser.Scene {
     this.tank1Kills = 0;
     this.tank2Kills = 0;
 
-	console.log(this.cameras);
-    // Create cameras for each tank's viewport. This should be base on the visible view of the browser.
-	this.camera1 = this.cameras.add(0, 0, this.cameras.scene.scale.parentSize._width / 2, this.cameras.scene.scale.parentSize._height); // Left viewport
-    this.camera2 = this.cameras.add(this.cameras.scene.scale.parentSize._width / 2, 0, this.cameras.scene.scale.parentSize._width / 2, this.cameras.scene.scale.parentSize._height); // Right viewport
+    console.log(this.cameras);
+    // Create cameras for each tank's viewport based on the browser's viewport size
+    this.camera1 = this.cameras.add(0, 0, window.innerWidth / 2, window.innerHeight); // Left viewport
+    this.camera2 = this.cameras.add(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight); // Right viewport
 
     // Set the bounds for the cameras
     this.camera1.setBounds(0, 0, this.game.config.width, this.game.config.height);
@@ -114,9 +116,22 @@ class BootScene extends Phaser.Scene {
     this.camera1.startFollow(this.tank1, true, 0.1, 0.1); // Smooth follow for tank1
     this.camera2.startFollow(this.tank2, true, 0.1, 0.1); // Smooth follow for tank2
 
-    // Center the cameras on their respective tanks
-    //this.camera1.setScroll(0, 0); // Reset scroll for camera1
-    //this.camera2.setScroll(0, 0); // Reset scroll for camera2
+    // Ensure the cameras can scroll vertically
+    this.camera1.setScroll(0, 0); // Reset scroll position
+    this.camera2.setScroll(0, 0); // Reset scroll position
+
+    // Function to update camera sizes
+    const updateCameraSizes = () => {
+      this.camera1.setSize(window.innerWidth / 2, window.innerHeight);
+      this.camera2.setPosition(window.innerWidth / 2, 0);
+      this.camera2.setSize(window.innerWidth / 2, window.innerHeight);
+    };
+
+    // Initial camera setup
+    updateCameraSizes();
+
+    // Add resize event listener
+    window.addEventListener('resize', updateCameraSizes);
   }
 
   createWorld() {
@@ -131,9 +146,12 @@ class BootScene extends Phaser.Scene {
     const reducedbushBlocks = Math.floor(totalbushBlocks * 0.95); // Reduce by 5%
 
     const positions = new Set(); // To track occupied positions
+    let attempts = 0; // Counter for attempts to add bushes
+    const maxAttempts = 1000; // Maximum attempts to prevent infinite loop
 
     // Fill the world with bush blocks using the configured width
-    while (positions.size < reducedbushBlocks) {
+    while (positions.size < reducedbushBlocks && attempts < maxAttempts) {
+        attempts++; // Increment the attempt counter
         const x = Phaser.Math.Between(0, this.game.config.width - bushWidth);
         const y = Phaser.Math.Between(0, this.game.config.height - bushWidth);
 
@@ -154,6 +172,11 @@ class BootScene extends Phaser.Scene {
                 bush.rotation = Phaser.Math.Between(0, 3) * (Math.PI / 2); // Random rotation at 90-degree intervals
             }
         }
+    }
+
+    // Check if we exceeded max attempts
+    if (attempts >= maxAttempts) {
+        console.warn('Max attempts reached while trying to place bushes. Some bushes may not be placed.');
     }
 
     // Remove bush blocks directly under the bases
@@ -237,6 +260,10 @@ class BootScene extends Phaser.Scene {
         this.tank1.rotation = Math.atan2(this.tank1.body.velocity.y, this.tank1.body.velocity.x);
     }
 
+    // Update tank1 position display
+    const tank1PositionEl = document.getElementById('tank1-position');
+    tank1PositionEl.innerText = `(${Math.round(this.tank1.x)}, ${Math.round(this.tank1.y)})`;
+
     // Tank2 movement
     this.tank2.setVelocity(0);
     if (this.cursors.up.isDown) {
@@ -254,6 +281,10 @@ class BootScene extends Phaser.Scene {
     if (this.tank2.body.velocity.x !== 0 || this.tank2.body.velocity.y !== 0) {
         this.tank2.rotation = Math.atan2(this.tank2.body.velocity.y, this.tank2.body.velocity.x);
     }
+
+    // Update tank2 position display
+    const tank2PositionEl = document.getElementById('tank2-position');
+    tank2PositionEl.innerText = `(${Math.round(this.tank2.x)}, ${Math.round(this.tank2.y)})`;
 
     // Tank1 shooting
     if (this.spaceBar.isDown && this.canFireTank1) {
@@ -297,6 +328,9 @@ class BootScene extends Phaser.Scene {
         Math.sin(tank.rotation) * bulletSpeed
     );
 
+    // Set the bullet's rotation to match the tank's rotation
+    bullet.rotation = tank.rotation;
+
     // Add overlap detection for hitting tanks
     if (tankName === 'tank1') {
         this.physics.add.overlap(bullet, this.tank2, this.hitTank2, null, this);
@@ -333,7 +367,7 @@ class BootScene extends Phaser.Scene {
 
     // Destroy bullet after it goes out of bounds
     bullet.body.world.on('worldbounds', () => {
-        bullet.destroy();
+        bullet.destroy(); // Only destroy the bullet that goes out of bounds
     });
   }
 
@@ -478,5 +512,10 @@ class BootScene extends Phaser.Scene {
   resetScores() {
     this.tank1Kills = 0;
     this.tank2Kills = 0;
+  }
+
+  shutdown() {
+    window.removeEventListener('resize', this.updateCameraSizes);
+    // ... any other cleanup code ...
   }
 }
