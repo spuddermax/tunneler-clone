@@ -34,7 +34,7 @@ body {
     display: none;
   }
   
-  #health-bars {
+  #debug-stats {
     display: none;
     position: absolute;
     top: 10px;

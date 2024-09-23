@@ -53,6 +53,9 @@ function startGame() {
   game.config.tankBushDamage = 0.25; // Set tank damage percentage when hitting bush
   game.config.speedDropPercentage = 0.5; // Set speed drop percentage (50%)
   game.config.speedDropDuration = 500; // Set speed drop duration in milliseconds
+  game.config.tankForwardSpeed = 100; // Set tank forward speed in config
+  game.config.tankBackwardSpeed = 50; // Set tank backward speed in config
+  game.config.tankTurnSpeed = 0.05; // Set tank turn speed in config
 }
 
 class BootScene extends Phaser.Scene {
@@ -100,10 +103,11 @@ class BootScene extends Phaser.Scene {
     this.createTanks();
 
     // Set up controls
-    // use ctrl key for tank1 to shoot
-    this.cursors = this.input.keyboard.createCursorKeys();
-    this.keysWASD = this.input.keyboard.addKeys('W,A,S,D,T');
-    this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+    // use space key for tank1 to shoot
+    // use enter key for tank2 to shoot
+    // use WASD for tank1 and arrow keys for tank2
+    this.tank1Keys = this.input.keyboard.addKeys('W,A,S,D,V');
+    this.tank2Keys = this.input.keyboard.addKeys('UP,DOWN,LEFT,RIGHT,ENTER');
 
     // Initialize variables
     this.tank1Health = 100;
@@ -264,36 +268,28 @@ class BootScene extends Phaser.Scene {
         this.checkTank2Health(); // Check if tank2 is destroyed
     }
 
-    // Apply slowdown effect to the tank
-    const originalVelocityX = tank.body.velocity.x;
-    const originalVelocityY = tank.body.velocity.y;
-
-    // Reduce speed by the configured percentage
-    tank.setVelocity(originalVelocityX * (1 - this.sys.game.config.speedDropPercentage), originalVelocityY * (1 - this.sys.game.config.speedDropPercentage));
-
-    // Restore original speed after the duration
-    this.time.delayedCall(this.sys.game.config.speedDropDuration, () => {
-        tank.setVelocity(originalVelocityX, originalVelocityY);
-    });
   }
 
   update() {
     // Update tank1 movement
-    this.tank1.setVelocity(0);
-    if (this.keysWASD.W.isDown) {
-        this.tank1.setVelocityY(-100);
-    } else if (this.keysWASD.S.isDown) {
-        this.tank1.setVelocityY(100);
-    }
-    if (this.keysWASD.A.isDown) {
-        this.tank1.setVelocityX(-100);
-    } else if (this.keysWASD.D.isDown) {
-        this.tank1.setVelocityX(100);
-    }
+    // W key should always move forward, S key should always move backward
+    // A key should always turn left, D key should always turn right
+    // Space key should always shoot
 
-    // Update tank1 rotation based on velocity
-    if (this.tank1.body.velocity.x !== 0 || this.tank1.body.velocity.y !== 0) {
-        this.tank1.rotation = Math.atan2(this.tank1.body.velocity.y, this.tank1.body.velocity.x);
+    this.tank1.setVelocity(0);
+
+    if (this.tank1Keys.W.isDown) {
+        // tank1 should always move forward
+        this.tank1.setVelocityX( Math.cos(this.tank1.rotation) * this.sys.game.config.tankForwardSpeed );
+        this.tank1.setVelocityY( Math.sin(this.tank1.rotation) * this.sys.game.config.tankForwardSpeed );
+    } else if (this.tank1Keys.S.isDown) {
+        this.tank1.setVelocityX( Math.cos(this.tank1.rotation) * -this.sys.game.config.tankBackwardSpeed );
+        this.tank1.setVelocityY( Math.sin(this.tank1.rotation) * -this.sys.game.config.tankBackwardSpeed );
+    }
+    if (this.tank1Keys.A.isDown) {
+        this.tank1.rotation -= this.sys.game.config.tankTurnSpeed;
+    } else if (this.tank1Keys.D.isDown) {
+      this.tank1.rotation += this.sys.game.config.tankTurnSpeed;
     }
 
     // Update tank1 position display
@@ -301,21 +297,24 @@ class BootScene extends Phaser.Scene {
     tank1PositionEl.innerText = `(${Math.round(this.tank1.x)}, ${Math.round(this.tank1.y)})`;
 
     // Tank2 movement
-    this.tank2.setVelocity(0);
-    if (this.cursors.up.isDown) {
-        this.tank2.setVelocityY(-100);
-    } else if (this.cursors.down.isDown) {
-        this.tank2.setVelocityY(100);
-    }
-    if (this.cursors.left.isDown) {
-        this.tank2.setVelocityX(-100);
-    } else if (this.cursors.right.isDown) {
-        this.tank2.setVelocityX(100);
-    }
+    // up and down keys should always move forward and backward
+    // left and right keys should always turn left and right
+    // enter key should always shoot
 
-    // Update tank2 rotation based on velocity
-    if (this.tank2.body.velocity.x !== 0 || this.tank2.body.velocity.y !== 0) {
-        this.tank2.rotation = Math.atan2(this.tank2.body.velocity.y, this.tank2.body.velocity.x);
+    this.tank2.setVelocity(0);
+
+    if (this.tank2Keys.UP.isDown) {
+        // tank2 should always move forward
+        this.tank2.setVelocityX( Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed );
+        this.tank2.setVelocityY( Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed );
+    } else if (this.tank2Keys.DOWN.isDown) {
+        this.tank2.setVelocityX( Math.cos(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed );
+        this.tank2.setVelocityY( Math.sin(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed );
+    }
+    if (this.tank2Keys.LEFT.isDown) {
+        this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
+    } else if (this.tank2Keys.RIGHT.isDown) {
+      this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
     }
 
     // Update tank2 position display
@@ -323,7 +322,7 @@ class BootScene extends Phaser.Scene {
     tank2PositionEl.innerText = `(${Math.round(this.tank2.x)}, ${Math.round(this.tank2.y)})`;
 
     // Tank1 shooting
-    if (this.keysWASD.T.isDown && this.canFireTank1) {
+    if (this.tank1Keys.V.isDown && this.canFireTank1) {
         this.shootBullet(this.tank1, 'tank1');
         this.canFireTank1 = false; // Prevent firing until cooldown
         this.time.delayedCall(this.fireRate, () => {
@@ -332,7 +331,7 @@ class BootScene extends Phaser.Scene {
     }
 
     // Tank2 shooting
-    if (this.enterKey.isDown && this.canFireTank2) {
+    if (this.tank2Keys.ENTER.isDown && this.canFireTank2) {
         this.shootBullet(this.tank2, 'tank2');
         this.canFireTank2 = false; // Prevent firing until cooldown
         this.time.delayedCall(this.fireRate, () => {
