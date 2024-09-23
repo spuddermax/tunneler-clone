@@ -4,14 +4,14 @@ const closeModalBtn = document.getElementById('close-modal-btn');
 const welcomeScreen = document.getElementById('welcome-screen');
 const instructionsModal = document.getElementById('instructions-modal');
 const gameContainer = document.getElementById('game-container');
-const healthBars = document.getElementById('health-bars');
+const debugStats = document.getElementById('debug-stats');
 const tank1HealthEl = document.getElementById('tank1-health');
 const tank2HealthEl = document.getElementById('tank2-health');
 
 startBtn.onclick = () => {
   welcomeScreen.style.display = 'none';
   gameContainer.style.display = 'block';
-  healthBars.style.display = 'block';
+  debugStats.style.display = 'block';
   startGame();
 };
 
@@ -51,6 +51,8 @@ function startGame() {
   game.config.healthBarOffset = 12; // Set health bar offset in config
   game.config.healthBarOpacity = 0.75; // Set health bar opacity in config
   game.config.tankBushDamage = 0.25; // Set tank damage percentage when hitting bush
+  game.config.speedDropPercentage = 0.5; // Set speed drop percentage (50%)
+  game.config.speedDropDuration = 500; // Set speed drop duration in milliseconds
 }
 
 class BootScene extends Phaser.Scene {
@@ -250,8 +252,6 @@ class BootScene extends Phaser.Scene {
 
   clearbush(tank, bush) {
     bush.destroy();
-    // Apply slowdown effect to the tank
-    tank.setVelocity(tank.body.velocity.x * this.bushSlowdownFactor, tank.body.velocity.y * this.bushSlowdownFactor);
     
     // Apply damage to the tank
     if (tank === this.tank1) {
@@ -263,6 +263,18 @@ class BootScene extends Phaser.Scene {
         tank2HealthEl.innerText = `${this.tank2Health}%`; // Update health display
         this.checkTank2Health(); // Check if tank2 is destroyed
     }
+
+    // Apply slowdown effect to the tank
+    const originalVelocityX = tank.body.velocity.x;
+    const originalVelocityY = tank.body.velocity.y;
+
+    // Reduce speed by the configured percentage
+    tank.setVelocity(originalVelocityX * (1 - this.sys.game.config.speedDropPercentage), originalVelocityY * (1 - this.sys.game.config.speedDropPercentage));
+
+    // Restore original speed after the duration
+    this.time.delayedCall(this.sys.game.config.speedDropDuration, () => {
+        tank.setVelocity(originalVelocityX, originalVelocityY);
+    });
   }
 
   update() {
