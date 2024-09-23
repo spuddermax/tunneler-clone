@@ -429,6 +429,7 @@ class BootScene extends Phaser.Scene {
             this.explodeTank(this.tank1);
             this.tank2Kills += 1;
             this.resetTank(this.tank1, 'tank1');
+            this.resetTank(this.tank2, 'tank2');
             this.tank1Health = 100;
             tank1HealthEl.innerText = `${this.tank1Health}%`;
             this.checkWinCondition('tank2');
@@ -442,6 +443,7 @@ class BootScene extends Phaser.Scene {
             this.explodeTank(this.tank2);
             this.tank1Kills += 1;
             this.resetTank(this.tank2, 'tank2');
+            this.resetTank(this.tank1, 'tank1');
             this.tank2Health = 100;
             tank2HealthEl.innerText = `${this.tank2Health}%`;
             this.checkWinCondition('tank1');
