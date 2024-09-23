@@ -92,9 +92,9 @@ class BootScene extends Phaser.Scene {
     this.createTanks();
 
     // Set up controls
+    // use ctrl key for tank1 to shoot
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.keysWASD = this.input.keyboard.addKeys('W,A,S,D');
-    this.spaceBar = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    this.keysWASD = this.input.keyboard.addKeys('W,A,S,D,T');
     this.enterKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
     // Initialize variables
@@ -287,7 +287,7 @@ class BootScene extends Phaser.Scene {
     tank2PositionEl.innerText = `(${Math.round(this.tank2.x)}, ${Math.round(this.tank2.y)})`;
 
     // Tank1 shooting
-    if (this.spaceBar.isDown && this.canFireTank1) {
+    if (this.keysWASD.T.isDown && this.canFireTank1) {
         this.shootBullet(this.tank1, 'tank1');
         this.canFireTank1 = false; // Prevent firing until cooldown
         this.time.delayedCall(this.fireRate, () => {
