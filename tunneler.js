@@ -7,11 +7,15 @@ const gameContainer = document.getElementById('game-container');
 const debugStats = document.getElementById('debug-stats');
 const tank1HealthEl = document.getElementById('tank1-health');
 const tank2HealthEl = document.getElementById('tank2-health');
+const tank1KillsEl = document.getElementById('tank1-kills');
+const tank2KillsEl = document.getElementById('tank2-kills');
+const gameTally = document.getElementById('game-tally');
 
 startBtn.onclick = () => {
 	welcomeScreen.style.display = 'none';
 	gameContainer.style.display = 'block';
 	debugStats.style.display = 'block';
+	gameTally.style.display = 'block';
 	startGame();
 };
 
@@ -53,8 +57,8 @@ function startGame() {
 	game.config.tankBushDamage = 0.25; // Set tank damage percentage when hitting bush
 	game.config.speedDropPercentage = 0.5; // Set speed drop percentage (50%)
 	game.config.speedDropDuration = 500; // Set speed drop duration in milliseconds
-	game.config.tankForwardSpeed = 100; // Set tank forward speed in config
-	game.config.tankBackwardSpeed = 50; // Set tank backward speed in config
+	game.config.tankForwardSpeed = 150; // Set tank forward speed in config
+	game.config.tankBackwardSpeed = 75; // Set tank backward speed in config
 	game.config.tankTurnSpeed = 0.05; // Set tank turn speed in config
 }
 
@@ -433,6 +437,7 @@ class BootScene extends Phaser.Scene {
 				if (this.tank1) { // Check if tank1 exists
 						this.explodeTank(this.tank1);
 						this.tank2Kills += 1;
+						tank2KillsEl.innerText = `${this.tank2Kills}`;
 						this.resetTank(this.tank1, 'tank1');
 						this.resetTank(this.tank2, 'tank2');
 						this.tank1Health = 100;
@@ -447,6 +452,7 @@ class BootScene extends Phaser.Scene {
 				if (this.tank2) { // Check if tank2 exists
 						this.explodeTank(this.tank2);
 						this.tank1Kills += 1;
+						tank1KillsEl.innerText = `${this.tank1Kills}`;
 						this.resetTank(this.tank2, 'tank2');
 						this.resetTank(this.tank1, 'tank1');
 						this.tank2Health = 100;

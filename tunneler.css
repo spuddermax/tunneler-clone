@@ -41,3 +41,11 @@ body {
     left: 10px;
   }
   
+  #game-tally {
+    display: none;
+    position: absolute;
+    width: 200px;
+    top: 10px;
+    right: 50%;
+    margin-right: -100px;
+  }
