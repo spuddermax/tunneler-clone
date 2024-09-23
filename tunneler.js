@@ -50,6 +50,7 @@ function startGame() {
   game.config.healthBarHeight = 10; // Set health bar height in config
   game.config.healthBarOffset = 12; // Set health bar offset in config
   game.config.healthBarOpacity = 0.75; // Set health bar opacity in config
+  game.config.tankBushDamage = 0.25; // Set tank damage percentage when hitting bush
 }
 
 class BootScene extends Phaser.Scene {
@@ -57,7 +58,7 @@ class BootScene extends Phaser.Scene {
     super({ key: 'BootScene' });
     this.canFireTank1 = true; // Flag for tank1 firing
     this.canFireTank2 = true; // Flag for tank2 firing
-    this.fireRate = 400; // Fire rate in milliseconds
+    this.fireRate = 350; // Fire rate in milliseconds
     this.bushSlowdownFactor = 0.5; // Factor to slow down tanks when hitting bush
     this.camera1 = null; // Camera for tank1
     this.camera2 = null; // Camera for tank2
@@ -251,6 +252,17 @@ class BootScene extends Phaser.Scene {
     bush.destroy();
     // Apply slowdown effect to the tank
     tank.setVelocity(tank.body.velocity.x * this.bushSlowdownFactor, tank.body.velocity.y * this.bushSlowdownFactor);
+    
+    // Apply damage to the tank
+    if (tank === this.tank1) {
+        this.tank1Health -= this.sys.game.config.tankBushDamage; // Reduce tank1 health by a value set in config
+        tank1HealthEl.innerText = `${this.tank1Health}%`; // Update health display
+        this.checkTank1Health(); // Check if tank1 is destroyed
+    } else if (tank === this.tank2) {
+        this.tank2Health -= this.sys.game.config.tankBushDamage; // Reduce tank2 health by a value set in config
+        tank2HealthEl.innerText = `${this.tank2Health}%`; // Update health display
+        this.checkTank2Health(); // Check if tank2 is destroyed
+    }
   }
 
   update() {
@@ -326,8 +338,8 @@ class BootScene extends Phaser.Scene {
   shootBullet(tank, tankName) {
     const bulletWidth = this.sys.game.config.bulletWidth; // Access bullet width from config
     const bullet = this.physics.add.sprite(tank.x, tank.y, 'bullet');
-    bullet.setCollideWorldBounds(true);
-    bullet.body.onWorldBounds = true;
+    //bullet.setCollideWorldBounds(true);
+    //bullet.body.onWorldBounds = true; // Enable world bounds for the bullet
     bullet.setDisplaySize(bulletWidth, bulletWidth); // Set the size of the bullet
 
     // Set a circular hitbox for the bullet
@@ -381,9 +393,9 @@ class BootScene extends Phaser.Scene {
     });
 
     // Destroy bullet after it goes out of bounds
-    bullet.body.world.on('worldbounds', () => {
-        bullet.destroy(); // Only destroy the bullet that goes out of bounds
-    });
+    //bullet.body.world.on('worldbounds', () => {
+    //    bullet.destroy(); // Only destroy the bullet that goes out of bounds
+    //});
   }
 
   hitTank1(bullet, tank) {
