@@ -47,6 +47,9 @@ function startGame() {
   game.config.bulletWidth = 8; // Set bullet width in config
   game.config.baseWidth = 400; // Set base width in config (adjust as needed)
   game.config.tankDamage = 10; // Set tank damage percentage when hit
+  game.config.healthBarHeight = 10; // Set health bar height in config
+  game.config.healthBarOffset = 12; // Set health bar offset in config
+  game.config.healthBarOpacity = 0.75; // Set health bar opacity in config
 }
 
 class BootScene extends Phaser.Scene {
@@ -60,6 +63,8 @@ class BootScene extends Phaser.Scene {
     this.camera2 = null; // Camera for tank2
 	this.base1 = null; // Base for tank1
 	this.base2 = null; // Base for tank2
+    this.healthBar1 = null; // Health bar for tank1
+    this.healthBar2 = null; // Health bar for tank2
   }
 
   preload() {
@@ -132,6 +137,13 @@ class BootScene extends Phaser.Scene {
 
     // Add resize event listener
     window.addEventListener('resize', updateCameraSizes);
+
+    // Create health bars
+    this.healthBar1 = this.add.graphics();
+    this.healthBar2 = this.add.graphics();
+
+    // Initial health bar setup
+    this.updateHealthBars();
   }
 
   createWorld() {
@@ -306,6 +318,9 @@ class BootScene extends Phaser.Scene {
 
     // Health regeneration in base
     this.regenerateHealth();
+
+    // Update health bars in each frame
+    this.updateHealthBars();
   }
 
   shootBullet(tank, tankName) {
@@ -517,6 +532,70 @@ class BootScene extends Phaser.Scene {
   resetScores() {
     this.tank1Kills = 0;
     this.tank2Kills = 0;
+  }
+
+  updateHealthBars() {
+    const healthBarHeight = this.sys.game.config.healthBarHeight; // Use health bar height from config
+    const healthBarOffset = this.sys.game.config.healthBarOffset; // Use health bar offset from config
+    const healthBarOpacity = this.sys.game.config.healthBarOpacity; // Use health bar opacity from config
+    const tank1HealthPercentage = this.tank1Health / 100;
+    const tank2HealthPercentage = this.tank2Health / 100;
+
+    // Clear previous health bars
+    this.healthBar1.clear();
+    this.healthBar2.clear();
+
+    // Calculate color for tank1 health bar
+    const tank1Color = Phaser.Display.Color.Interpolate.ColorWithColor(
+        { r: 255, g: 0, b: 0 }, // Red
+        { r: 0, g: 255, b: 0 }, // Green
+        100, // Total steps
+        Math.floor(tank1HealthPercentage * 100) // Current step
+    );
+
+    // Draw tank1 health bar at a predetermined location above the tank
+    this.healthBar1.fillStyle(Phaser.Display.Color.GetColor(tank1Color.r, tank1Color.g, tank1Color.b), healthBarOpacity);
+    this.healthBar1.fillRect(
+        this.tank1.x - this.sys.game.config.tankWidth / 2,
+        this.tank1.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
+        this.sys.game.config.tankWidth * tank1HealthPercentage,
+        healthBarHeight
+    );
+
+    // Draw border for tank1 health bar
+    this.healthBar1.lineStyle(1, 0x00ff00, 1); // Green border
+    this.healthBar1.strokeRect(
+        this.tank1.x - this.sys.game.config.tankWidth / 2,
+        this.tank1.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
+        this.sys.game.config.tankWidth,
+        healthBarHeight
+    );
+
+    // Calculate color for tank2 health bar
+    const tank2Color = Phaser.Display.Color.Interpolate.ColorWithColor(
+        { r: 255, g: 0, b: 0 }, // Red
+        { r: 0, g: 255, b: 0 }, // Green
+        100, // Total steps
+        Math.floor(tank2HealthPercentage * 100) // Current step
+    );
+
+    // Draw tank2 health bar
+    this.healthBar2.fillStyle(Phaser.Display.Color.GetColor(tank2Color.r, tank2Color.g, tank2Color.b), healthBarOpacity);
+    this.healthBar2.fillRect(
+        this.tank2.x - this.sys.game.config.tankWidth / 2,
+        this.tank2.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
+        this.sys.game.config.tankWidth * tank2HealthPercentage,
+        healthBarHeight
+    );
+
+    // Draw border for tank2 health bar
+    this.healthBar2.lineStyle(1, 0x00ff00, 1); // Green border
+    this.healthBar2.strokeRect(
+        this.tank2.x - this.sys.game.config.tankWidth / 2,
+        this.tank2.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
+        this.sys.game.config.tankWidth,
+        healthBarHeight
+    );
   }
 
   shutdown() {
