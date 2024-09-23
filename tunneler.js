@@ -103,13 +103,10 @@ class BootScene extends Phaser.Scene {
 		this.createTanks();
 
 		// Set up controls
-		// use space key for tank1 to shoot
-		// use enter key for tank2 to shoot
-		// use WASD for tank1 and arrow keys for tank2
-		// use I key to toggle debug-stats
 		this.tank1Keys = this.input.keyboard.addKeys('W,A,S,D,V');
 		this.tank2Keys = this.input.keyboard.addKeys('UP,DOWN,LEFT,RIGHT,ENTER');
 		this.toggleKeys = this.input.keyboard.addKeys('I');
+
 		// Toggle debug-stats
 		this.toggleKeys.I.on('down', () => {
 			debugStats.style.display = debugStats.style.display === 'block' ? 'none' : 'block';
@@ -241,16 +238,19 @@ class BootScene extends Phaser.Scene {
 		this.tank1 = this.physics.add.sprite(this.base1.x, this.base1.y, 'tank1'); // Centered vertically
 		this.tank1.setCollideWorldBounds(true);
 		this.tank1.setDisplaySize(tankWidth, tankWidth); // Set the size of tank1
-		this.tank1.rotation = Math.PI / 2; // Rotate tank1 to face up
+		// Rotate tank1 left 90 degrees in radians
+		this.tank1.rotation = -90 * (Math.PI / 180);
 		this.tank1.setDepth(1);
+		console.log(this.tank1);
 
 		// Create tank2 in the center of its base
 		this.tank2 = this.physics.add.sprite(this.base2.x, this.base2.y, 'tank2'); // Centered vertically
 		this.tank2.setCollideWorldBounds(true);
 		this.tank2.setDisplaySize(tankWidth, tankWidth); // Set the size of tank2
-		this.tank2.rotation = Math.PI / 2; // Rotate tank2 to face up
+		// Rotate tank2 left 90 degrees in radians
+		this.tank2.rotation = -90 * (Math.PI / 180);
 		this.tank2.setDepth(1);
-
+		console.log(this.tank2);
 		// Add collision with bush
 		this.physics.add.collider(this.tank1, this.bushGroup, this.clearbush, null, this);
 		this.physics.add.collider(this.tank2, this.bushGroup, this.clearbush, null, this);
@@ -476,16 +476,18 @@ class BootScene extends Phaser.Scene {
 		tank.disableBody(true, true);
 	}
 
-	// Reset tank to the center of its base
+	// Reset tank to the center of its base with rotation set to 0
 	resetTank(tank, tankName) {
 		if (tankName === 'tank1') {
 			tank.enableBody(true, 50, 300, true, true);
 			tank.x = this.base1.x;
 			tank.y = this.base1.y;
+			tank.rotation = -90 * (Math.PI / 180);
 		} else {
 			tank.enableBody(true, 750, 300, true, true);
 			tank.x = this.base2.x;
 			tank.y = this.base2.y;
+			tank.rotation = -90 * (Math.PI / 180);
 		}
 	}
 
