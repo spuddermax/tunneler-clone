@@ -109,6 +109,7 @@ class BootScene extends Phaser.Scene {
 		this.load.audio('tankHit', ['sfx/impact.mp3']);
 		this.load.audio('bushHit', ['sfx/impact_light.mp3']);
 		this.load.audio('vroom', ['sfx/vroom.mp3']);
+		this.load.audio('vroom2', ['sfx/vroom_lower.mp3']);
 	}
 
 	create() {
@@ -119,8 +120,8 @@ class BootScene extends Phaser.Scene {
 		this.fireSound = this.sound.add('fireSound', { loop: false, volume: 0.5 });
 		this.tankHit = this.sound.add('tankHit', { loop: false, volume: 0.5 });
 		this.bushHit = this.sound.add('bushHit', { loop: false, volume: 0.5 });
-		this.vroom = this.sound.add('vroom', { loop: true, volume: 0.5 });
-
+		this.vroom = this.sound.add('vroom', { loop: true, volume: 0.75 });
+		this.vroom2 = this.sound.add('vroom2', { loop: true, volume: 0.75 });
 		// Add a border to the game
 		const borderTop = this.add.rectangle(worldWidth/2, this.game.config.borderSize / 2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
 		const borderBottom = this.add.rectangle(worldWidth/2, worldHeight - this.game.config.borderSize/2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
@@ -446,10 +447,15 @@ class BootScene extends Phaser.Scene {
 			this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
 		}
 
-		if (tank1Moving || tank2Moving) {
+		if (tank1Moving) {
 			this.vroom.play();
 		} else {
 			this.vroom.stop();
+		}
+		if (tank2Moving) {
+			this.vroom2.play();
+		} else {
+			this.vroom2.stop();
 		}
 
 		// Update tank2 position display
