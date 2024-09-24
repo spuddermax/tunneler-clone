@@ -108,6 +108,7 @@ class BootScene extends Phaser.Scene {
 		this.load.audio('fireSound', ['sfx/pew.mp3']);
 		this.load.audio('tankHit', ['sfx/impact.mp3']);
 		this.load.audio('bushHit', ['sfx/impact_light.mp3']);
+		this.load.audio('vroom', ['sfx/vroom.mp3']);
 	}
 
 	create() {
@@ -118,6 +119,7 @@ class BootScene extends Phaser.Scene {
 		this.fireSound = this.sound.add('fireSound', { loop: false, volume: 0.5 });
 		this.tankHit = this.sound.add('tankHit', { loop: false, volume: 0.5 });
 		this.bushHit = this.sound.add('bushHit', { loop: false, volume: 0.5 });
+		this.vroom = this.sound.add('vroom', { loop: true, volume: 0.5 });
 
 		// Add a border to the game
 		const borderTop = this.add.rectangle(worldWidth/2, this.game.config.borderSize / 2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
@@ -386,14 +388,18 @@ class BootScene extends Phaser.Scene {
 		// V key should always shoot
 
 		this.tank1.setVelocity(0);
+		let tank1Moving = false;
+		let tank2Moving = false;
 
 		if (this.tank1Keys.W.isDown) {
 				// tank1 should always move forward
 				this.tank1.setVelocityX( Math.cos(this.tank1.rotation) * this.sys.game.config.tankForwardSpeed );
 				this.tank1.setVelocityY( Math.sin(this.tank1.rotation) * this.sys.game.config.tankForwardSpeed );
+				tank1Moving = true;
 		} else if (this.tank1Keys.S.isDown) {
 				this.tank1.setVelocityX( Math.cos(this.tank1.rotation) * -this.sys.game.config.tankBackwardSpeed );
 				this.tank1.setVelocityY( Math.sin(this.tank1.rotation) * -this.sys.game.config.tankBackwardSpeed );
+				tank1Moving = true;
 		}
 		if (this.tank1Keys.A.isDown) {
 				this.tank1.rotation -= this.sys.game.config.tankTurnSpeed;
@@ -428,14 +434,22 @@ class BootScene extends Phaser.Scene {
 				// tank2 should always move forward
 				this.tank2.setVelocityX( Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed );
 				this.tank2.setVelocityY( Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed );
+				tank2Moving = true;
 		} else if (this.tank2Keys.DOWN.isDown) {
 				this.tank2.setVelocityX( Math.cos(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed );
 				this.tank2.setVelocityY( Math.sin(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed );
+				tank2Moving = true;
 		}
 		if (this.tank2Keys.LEFT.isDown) {
 				this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
 		} else if (this.tank2Keys.RIGHT.isDown) {
 			this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
+		}
+
+		if (tank1Moving || tank2Moving) {
+			this.vroom.play();
+		} else {
+			this.vroom.stop();
 		}
 
 		// Update tank2 position display
@@ -538,11 +552,6 @@ class BootScene extends Phaser.Scene {
 				bush.destroy(); // Also destroy the original bush block
 				bullet.destroy(); // Destroy the bullet
 		});
-
-		// Destroy bullet after it goes out of bounds
-		//bullet.body.world.on('worldbounds', () => {
-		//    bullet.destroy(); // Only destroy the bullet that goes out of bounds
-		//});
 	}
 
 	hitTank1(bullet, tank) {
