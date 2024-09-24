@@ -168,50 +168,61 @@ class BootScene extends Phaser.Scene {
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
 		// Calculate the total number of bush blocks based on the game area
-		const totalbushBlocks = Math.floor((this.game.config.width * this.game.config.height) / (bushWidth * bushWidth));
-		const reducedbushBlocks = Math.floor(totalbushBlocks * 0.95); // Reduce by 5%
+		const totalBushBlocks = Math.floor((this.game.config.width * this.game.config.height) / (bushWidth * bushWidth));
+		const reducedBushBlocks = Math.floor(totalBushBlocks * 0.95); // Reduce by 5%
 
 		const positions = new Set(); // To track occupied positions
 		let attempts = 0; // Counter for attempts to add bushes
 		const maxAttempts = 1000; // Maximum attempts to prevent infinite loop
 
+		// Initialize total bushes count
+		this.totalBushesCount = 0; // New variable to track total bushes
+
 		// Fill the world with bush blocks using the configured width
-		while (positions.size < reducedbushBlocks && attempts < maxAttempts) {
-				attempts++; // Increment the attempt counter
-				const x = Phaser.Math.Between(0, this.game.config.width - bushWidth);
-				const y = Phaser.Math.Between(0, this.game.config.height - bushWidth);
+		while (positions.size < reducedBushBlocks && attempts < maxAttempts) {
+			attempts++; // Increment the attempt counter
+			const x = Phaser.Math.Between(0, this.game.config.width - bushWidth);
+			const y = Phaser.Math.Between(0, this.game.config.height - bushWidth);
 
-				// Check if the bush block is within the boundaries of the bases
-				const isInBase1 = (x >= this.base1.x - baseWidth / 2 && x <= this.base1.x + baseWidth / 2) &&
-													(y >= this.base1.y - baseWidth / 2 && y <= this.base1.y + baseWidth / 2);
-				const isInBase2 = (x >= this.base2.x - baseWidth / 2 && x <= this.base2.x + baseWidth / 2) &&
-													(y >= this.base2.y - baseWidth / 2 && y <= this.base2.y + baseWidth / 2);
+			// Check if the bush block is within the boundaries of the bases
+			const isInBase1 = (x >= this.base1.x - baseWidth / 2 && x <= this.base1.x + baseWidth / 2) &&
+				(y >= this.base1.y - baseWidth / 2 && y <= this.base1.y + baseWidth / 2);
+			const isInBase2 = (x >= this.base2.x - baseWidth / 2 && x <= this.base2.x + baseWidth / 2) &&
+				(y >= this.base2.y - baseWidth / 2 && y <= this.base2.y + baseWidth / 2);
 
-				// Only create bush if it's not within the base boundaries and not overlapping
-				if (!isInBase1 && !isInBase2) {
-						const positionKey = `${Math.floor(x / bushWidth)},${Math.floor(y / bushWidth)}`; // Create a unique key for the position
-						if (!positions.has(positionKey)) {
-								positions.add(positionKey); // Add the position to the set
-								const bushImage = `bush${Phaser.Math.Between(1, 4)}`; // Randomly select bush image
-								const bush = this.bushGroup.create(x, y, bushImage);
-								bush.setDisplaySize(bushWidth, bushWidth); // Set the size of the bush block
-								bush.rotation = Phaser.Math.Between(0, 3) * (Math.PI / 2); // Random rotation at 90-degree intervals
-						}
+			// Only create bush if it's not within the base boundaries and not overlapping
+			if (!isInBase1 && !isInBase2) {
+				const positionKey = `${Math.floor(x / bushWidth)},${Math.floor(y / bushWidth)}`; // Create a unique key for the position
+				if (!positions.has(positionKey)) {
+					positions.add(positionKey); // Add the position to the set
+					const bushImage = `bush${Phaser.Math.Between(1, 4)}`; // Randomly select bush image
+					const bush = this.bushGroup.create(x, y, bushImage);
+					bush.setDisplaySize(bushWidth, bushWidth); // Set the size of the bush block
+					bush.rotation = Phaser.Math.Between(0, 3) * (Math.PI / 2); // Random rotation at 90-degree intervals
+
+					// Increment the total bushes count and update the display
+					this.totalBushesCount++;
+					document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
 				}
+			}
 		}
 
 		// Check if we exceeded max attempts
 		if (attempts >= maxAttempts) {
-				console.warn('Max attempts reached while trying to place bushes. Some bushes may not be placed.');
+			console.warn('Max attempts reached while trying to place bushes. Some bushes may not be placed.');
 		}
 
 		// Remove bush blocks directly under the bases
 		this.bushGroup.children.iterate((bush) => {
 			if (bush.x === this.base1.x && bush.y === this.base1.y) {
 				bush.destroy();
+				this.totalBushesCount--;
+				document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
 			}
 			if (bush.x === this.base2.x && bush.y === this.base2.y) {
 				bush.destroy();
+				this.totalBushesCount--;
+				document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
 			}
 		});
 	}
@@ -265,7 +276,9 @@ class BootScene extends Phaser.Scene {
 
 	clearbush(tank, bush) {
 		bush.destroy();
-		
+		this.totalBushesCount--;
+		document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
+
 		// Apply damage to the tank
 		if (tank === this.tank1) {
 				this.tank1Health -= this.sys.game.config.tankBushDamage; // Reduce tank1 health by a value set in config
