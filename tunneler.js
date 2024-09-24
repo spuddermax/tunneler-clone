@@ -44,6 +44,8 @@ function startGame() {
 	// Create the game instance
 	const game = new Phaser.Game(config);
 
+	game.config.borderSize = 10; // Set border size
+	game.config.borderColor = 0x336699; // Set border color to blue
 	game.config.bushWidth = 24; // Set bush width
 	game.config.tankWidth = 72; // Set tank width
 	game.config.bulletWidth = 8; // Set bullet width
@@ -107,6 +109,17 @@ class BootScene extends Phaser.Scene {
 		// Set the tiled background based on the world size
 		const worldWidth = this.game.config.width;
 		const worldHeight = this.game.config.height;
+
+		// Add a border to the game
+		const borderTop = this.add.rectangle(worldWidth/2, this.game.config.borderSize / 2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
+		const borderBottom = this.add.rectangle(worldWidth/2, worldHeight - this.game.config.borderSize/2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
+		const borderLeft = this.add.rectangle(this.game.config.borderSize/2, worldHeight/2, this.game.config.borderSize, worldHeight, this.game.config.borderColor, 1);
+		const borderRight = this.add.rectangle(worldWidth - this.game.config.borderSize/2, worldHeight/2, this.game.config.borderSize, worldHeight, this.game.config.borderColor, 1);
+
+		borderTop.setDepth(100);
+		borderBottom.setDepth(100);
+		borderLeft.setDepth(100);
+		borderRight.setDepth(100);
 
 		// Pick a random tiled background
 		const tiledBackground = Phaser.Math.Between(1, 2);
