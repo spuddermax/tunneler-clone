@@ -104,8 +104,10 @@ class BootScene extends Phaser.Scene {
 		this.load.image('tree6', 'images/tree_6.png');
 		this.load.image('tree7', 'images/tree_7.png');
 		
-		// Load firing sound
-		this.load.audio('fireSound', ['sfx/pew.mp3']); // Adjust the path as necessary
+		// Load sounds
+		this.load.audio('fireSound', ['sfx/pew.mp3']);
+		this.load.audio('tankHit', ['sfx/impact.mp3']);
+		this.load.audio('bushHit', ['sfx/impact_light.mp3']);
 	}
 
 	create() {
@@ -114,6 +116,8 @@ class BootScene extends Phaser.Scene {
 		const worldHeight = this.game.config.height;
 
 		this.fireSound = this.sound.add('fireSound', { loop: false, volume: 0.5 });
+		this.tankHit = this.sound.add('tankHit', { loop: false, volume: 0.5 });
+		this.bushHit = this.sound.add('bushHit', { loop: false, volume: 0.5 });
 
 		// Add a border to the game
 		const borderTop = this.add.rectangle(worldWidth/2, this.game.config.borderSize / 2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
@@ -357,6 +361,8 @@ class BootScene extends Phaser.Scene {
 
 	clearbush(tank, bush) {
 		bush.destroy();
+		this.bushHit.play();
+
 		this.totalBushesCount--;
 		document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
 
@@ -526,6 +532,9 @@ class BootScene extends Phaser.Scene {
 						}
 				}
 
+				// Play bushHit sound
+				this.bushHit.play();
+
 				bush.destroy(); // Also destroy the original bush block
 				bullet.destroy(); // Destroy the bullet
 		});
@@ -538,13 +547,18 @@ class BootScene extends Phaser.Scene {
 
 	hitTank1(bullet, tank) {
 		bullet.destroy();
+		this.tankHit.play();
 		this.tank1Health -= this.sys.game.config.tankDamage; // Use the tankDamage from config
 		tank1HealthEl.innerText = `${this.tank1Health}%`;
 		this.checkTank1Health();
+
+		// Play impact sound
+		this.tankHit.play();
 	}
 
 	hitTank2(bullet, tank) {
 		bullet.destroy();
+		this.tankHit.play();
 		this.tank2Health -= this.sys.game.config.tankDamage; // Use the tankDamage from config
 		tank2HealthEl.innerText = `${this.tank2Health}%`;
 		this.checkTank2Health();
