@@ -14,7 +14,6 @@ const gameTally = document.getElementById('game-tally');
 startBtn.onclick = () => {
 	welcomeScreen.style.display = 'none';
 	gameContainer.style.display = 'block';
-	debugStats.style.display = 'block';
 	gameTally.style.display = 'block';
 	startGame();
 };
@@ -45,21 +44,25 @@ function startGame() {
 	// Create the game instance
 	const game = new Phaser.Game(config);
 
-	// Set the bushWidth, tankWidth, bulletWidth, and baseWidth in the game config after the game instance is created
-	game.config.bushWidth = 24; // Set bush width in config
-	game.config.tankWidth = 72; // Set tank width in config
-	game.config.bulletWidth = 8; // Set bullet width in config
-	game.config.baseWidth = 400; // Set base width in config (adjust as needed)
+	game.config.bushWidth = 24; // Set bush width
+	game.config.tankWidth = 72; // Set tank width
+	game.config.bulletWidth = 8; // Set bullet width
+	game.config.baseWidth = 400; // Set base width
 	game.config.tankDamage = 10; // Set tank damage percentage when hit
-	game.config.healthBarHeight = 10; // Set health bar height in config
-	game.config.healthBarOffset = 12; // Set health bar offset in config
-	game.config.healthBarOpacity = 0.75; // Set health bar opacity in config
+	game.config.healthBarHeight = 10; // Set health bar height
+	game.config.healthBarOffset = 12; // Set health bar offset
+	game.config.healthBarOpacity = 0.75; // Set health bar opacity
 	game.config.tankBushDamage = 0.25; // Set tank damage percentage when hitting bush
 	game.config.speedDropPercentage = 0.5; // Set speed drop percentage (50%)
 	game.config.speedDropDuration = 500; // Set speed drop duration in milliseconds
-	game.config.tankForwardSpeed = 150; // Set tank forward speed in config
-	game.config.tankBackwardSpeed = 75; // Set tank backward speed in config
-	game.config.tankTurnSpeed = 0.05; // Set tank turn speed in config
+	game.config.tankForwardSpeed = 150; // Set tank forward speed
+	game.config.tankBackwardSpeed = 75; // Set tank backward speed
+	game.config.tankTurnSpeed = 0.05; // Set tank turn speed
+	game.config.treeWidth = 172; // Set tree width
+	game.config.treeHeight = 335; // Set tree height
+	game.config.treeTrunkWidth = 10; // Set tree trunk width
+	game.config.treeTrunkXoffset = 86; // Set tree trunk x offset
+	game.config.treeTrunkYoffset = 86; // Set tree trunk y offset
 }
 
 class BootScene extends Phaser.Scene {
@@ -89,6 +92,13 @@ class BootScene extends Phaser.Scene {
 		this.load.image('base', 'images/base.png');
 		this.load.image('explosion', 'images/explosion2.gif');
 		this.load.image('world_floor', 'images/world_floor.png');
+		this.load.image('tree1', 'images/tree1.png');
+		this.load.image('tree2', 'images/tree_2.png');
+		this.load.image('tree3', 'images/tree_3.png');
+		this.load.image('tree4', 'images/tree_4.png');
+		this.load.image('tree5', 'images/tree_5.png');
+		this.load.image('tree6', 'images/tree_6.png');
+		this.load.image('tree7', 'images/tree_7.png');
 	}
 
 	create() {
@@ -641,12 +651,6 @@ class HealthBar {
 			100, // Total steps
 			Math.floor(this.health * 100) // Current step
 		);
-
-		// If tank is near the top edge of the screen, move the health bar to the bottom edge of the tank
-		if (this.tank.y < this.tank.height / 2) {
-			console.log("Tank is near the top edge of the screen");
-			this.y = this.tank.y + this.tank.height + this.offset;
-		}
 
 		// Draw health bar
 		this.graphics.fillStyle(Phaser.Display.Color.GetColor(color.r, color.g, color.b), this.opacity);
