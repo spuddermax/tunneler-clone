@@ -605,6 +605,9 @@ class BootScene extends Phaser.Scene {
 	}
 
 	updateHealthBars() {
+		// Set health bar health to tank health
+		this.healthBar1.health = this.tank1Health / 100;
+		this.healthBar2.health = this.tank2Health / 100;
 		this.healthBar1.update();
 		this.healthBar2.update();
 	}
@@ -622,13 +625,13 @@ class HealthBar {
 		this.graphics = this.scene.add.graphics();
 		this.height = this.scene.sys.game.config.healthBarHeight;
 		this.offset = this.scene.sys.game.config.healthBarOffset;
+		this.health = tank.health / 100;
 		this.opacity = this.scene.sys.game.config.healthBarOpacity;
 		this.x = this.tank.x;
 		this.y = this.tank.y;
 	}
 
 	update() {
-		const healthPercentage = this.tank.health / 100;
 		this.graphics.clear();
 
 		// Calculate color for health bar
@@ -636,7 +639,7 @@ class HealthBar {
 			{ r: 255, g: 0, b: 0 }, // Red
 			{ r: 0, g: 255, b: 0 }, // Green
 			100, // Total steps
-			Math.floor(healthPercentage * 100) // Current step
+			Math.floor(this.health * 100) // Current step
 		);
 
 		// If tank is near the top edge of the screen, move the health bar to the bottom edge of the tank
@@ -650,7 +653,7 @@ class HealthBar {
 		this.graphics.fillRect(
 			this.x - this.scene.sys.game.config.tankWidth / 2,
 			this.y - this.scene.sys.game.config.tankWidth / 2 - this.height - this.offset,
-			this.scene.sys.game.config.tankWidth * healthPercentage,
+			this.scene.sys.game.config.tankWidth * this.health,
 			this.height
 		);
 
