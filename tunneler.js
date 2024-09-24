@@ -153,8 +153,8 @@ class BootScene extends Phaser.Scene {
 		window.addEventListener('resize', updateCameraSizes);
 
 		// Create health bars
-		this.healthBar1 = this.add.graphics();
-		this.healthBar2 = this.add.graphics();
+		this.healthBar1 = new HealthBar(this, { x: this.tank1.x, y: this.tank1.y, health: this.tank1Health });
+		this.healthBar2 = new HealthBar(this, { x: this.tank2.x, y: this.tank2.y, health: this.tank2Health });
 
 		// Initial health bar setup
 		this.updateHealthBars();
@@ -173,14 +173,17 @@ class BootScene extends Phaser.Scene {
 
 		const positions = new Set(); // To track occupied positions
 		let attempts = 0; // Counter for attempts to add bushes
-		const maxAttempts = 1000; // Maximum attempts to prevent infinite loop
+		const maxAttempts = 2000; // Maximum attempts to prevent infinite loop
 
 		// Initialize total bushes count
 		this.totalBushesCount = 0; // New variable to track total bushes
 
 		// Fill the world with bush blocks using the configured width
-		while (attempts < maxAttempts) {
+		while (attempts < totalBushBlocks) {
 			attempts++; // Increment the attempt counter
+			if(attempts > maxAttempts) {
+				break;
+			}
 			const x = Phaser.Math.Between(0, this.game.config.width - bushWidth);
 			const y = Phaser.Math.Between(0, this.game.config.height - bushWidth);
 
@@ -219,7 +222,7 @@ class BootScene extends Phaser.Scene {
 		// randomY2 should always be greater than 0 and less than the height of the world
 		let randomX1 = Math.abs(Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth));
 		let randomY1 = Math.abs(Phaser.Math.Between(0, this.game.config.height - baseWidth));
-		randomX1 = randomX1 <= 0 ? baseWidth : randomX1;
+		randomX1 = randomX1 <= baseWidth / 2 ? baseWidth / 2 : randomX1;
 		randomY1 = randomY1 <= baseWidth / 2 ? baseWidth / 2 : randomY1;
 		randomY1 = randomY1 >= this.game.config.height - baseWidth / 2 ? this.game.config.height - baseWidth / 2 : randomY1;
 		this.base1 = this.physics.add.staticSprite(randomX1, randomY1, 'base');
@@ -311,6 +314,18 @@ class BootScene extends Phaser.Scene {
 		const tank1PositionEl = document.getElementById('tank1-position');
 		tank1PositionEl.innerText = `(${Math.round(this.tank1.x)}, ${Math.round(this.tank1.y)})`;
 
+		this.healthBar1.x = this.tank1.x;
+		this.healthBar1.y = this.tank1.y;
+		document.getElementById('tank1-health-bar-position').innerText = `(${this.healthBar1.x}, ${this.healthBar1.y})`;
+
+		// If the tank is at the top edge of the screen, move its health bar to the bottom edge of the tank
+		if (this.tank1.y < (this.tank1.height / 2) + this.sys.game.config.healthBarOffset + this.sys.game.config.healthBarHeight ) {
+			this.healthBar1.offset = (this.sys.game.config.healthBarOffset * -1) - this.tank1.height - this.sys.game.config.healthBarHeight;
+		} else {
+			this.healthBar1.offset = this.sys.game.config.healthBarOffset;
+		}
+
+
 		// Tank2 movement
 		// up and down keys should always move forward and backward
 		// left and right keys should always turn left and right
@@ -335,6 +350,17 @@ class BootScene extends Phaser.Scene {
 		// Update tank2 position display
 		const tank2PositionEl = document.getElementById('tank2-position');
 		tank2PositionEl.innerText = `(${Math.round(this.tank2.x)}, ${Math.round(this.tank2.y)})`;
+
+		this.healthBar2.x = this.tank2.x;
+		this.healthBar2.y = this.tank2.y;
+		document.getElementById('tank2-health-bar-position').innerText = `(${this.healthBar2.x}, ${this.healthBar2.y})`;
+
+		// If the tank is at the top edge of the screen, move its health bar to the bottom edge of the tank
+		if (this.tank2.y < (this.tank2.height / 2) + this.sys.game.config.healthBarOffset + this.sys.game.config.healthBarHeight ) {
+			this.healthBar2.offset = (this.sys.game.config.healthBarOffset * -1) - this.tank2.height - this.sys.game.config.healthBarHeight;
+		} else {
+			this.healthBar2.offset = this.sys.game.config.healthBarOffset;
+		}
 
 		// Tank1 shooting
 		if (this.tank1Keys.V.isDown && this.canFireTank1) {
@@ -579,71 +605,62 @@ class BootScene extends Phaser.Scene {
 	}
 
 	updateHealthBars() {
-		const healthBarHeight = this.sys.game.config.healthBarHeight; // Use health bar height from config
-		const healthBarOffset = this.sys.game.config.healthBarOffset; // Use health bar offset from config
-		const healthBarOpacity = this.sys.game.config.healthBarOpacity; // Use health bar opacity from config
-		const tank1HealthPercentage = this.tank1Health / 100;
-		const tank2HealthPercentage = this.tank2Health / 100;
-
-		// Clear previous health bars
-		this.healthBar1.clear();
-		this.healthBar2.clear();
-
-		// Calculate color for tank1 health bar
-		const tank1Color = Phaser.Display.Color.Interpolate.ColorWithColor(
-				{ r: 255, g: 0, b: 0 }, // Red
-				{ r: 0, g: 255, b: 0 }, // Green
-				100, // Total steps
-				Math.floor(tank1HealthPercentage * 100) // Current step
-		);
-
-		// Draw tank1 health bar at a predetermined location above the tank
-		this.healthBar1.fillStyle(Phaser.Display.Color.GetColor(tank1Color.r, tank1Color.g, tank1Color.b), healthBarOpacity);
-		this.healthBar1.fillRect(
-				this.tank1.x - this.sys.game.config.tankWidth / 2,
-				this.tank1.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
-				this.sys.game.config.tankWidth * tank1HealthPercentage,
-				healthBarHeight
-		);
-
-		// Draw border for tank1 health bar
-		this.healthBar1.lineStyle(1, 0x00ff00, 1); // Green border
-		this.healthBar1.strokeRect(
-				this.tank1.x - this.sys.game.config.tankWidth / 2,
-				this.tank1.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
-				this.sys.game.config.tankWidth,
-				healthBarHeight
-		);
-
-		// Calculate color for tank2 health bar
-		const tank2Color = Phaser.Display.Color.Interpolate.ColorWithColor(
-				{ r: 255, g: 0, b: 0 }, // Red
-				{ r: 0, g: 255, b: 0 }, // Green
-				100, // Total steps
-				Math.floor(tank2HealthPercentage * 100) // Current step
-		);
-
-		// Draw tank2 health bar
-		this.healthBar2.fillStyle(Phaser.Display.Color.GetColor(tank2Color.r, tank2Color.g, tank2Color.b), healthBarOpacity);
-		this.healthBar2.fillRect(
-				this.tank2.x - this.sys.game.config.tankWidth / 2,
-				this.tank2.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
-				this.sys.game.config.tankWidth * tank2HealthPercentage,
-				healthBarHeight
-		);
-
-		// Draw border for tank2 health bar
-		this.healthBar2.lineStyle(1, 0x00ff00, 1); // Green border
-		this.healthBar2.strokeRect(
-				this.tank2.x - this.sys.game.config.tankWidth / 2,
-				this.tank2.y - this.sys.game.config.tankWidth / 2 - healthBarHeight - healthBarOffset, // Use healthBarOffset for positioning
-				this.sys.game.config.tankWidth,
-				healthBarHeight
-		);
+		this.healthBar1.update();
+		this.healthBar2.update();
 	}
 
 	shutdown() {
 		window.removeEventListener('resize', this.updateCameraSizes);
 		// ... any other cleanup code ...
+	}
+}
+
+class HealthBar {
+	constructor(scene, tank) {
+		this.scene = scene;
+		this.tank = tank;
+		this.graphics = this.scene.add.graphics();
+		this.height = this.scene.sys.game.config.healthBarHeight;
+		this.offset = this.scene.sys.game.config.healthBarOffset;
+		this.opacity = this.scene.sys.game.config.healthBarOpacity;
+		this.x = this.tank.x;
+		this.y = this.tank.y;
+	}
+
+	update() {
+		const healthPercentage = this.tank.health / 100;
+		this.graphics.clear();
+
+		// Calculate color for health bar
+		const color = Phaser.Display.Color.Interpolate.ColorWithColor(
+			{ r: 255, g: 0, b: 0 }, // Red
+			{ r: 0, g: 255, b: 0 }, // Green
+			100, // Total steps
+			Math.floor(healthPercentage * 100) // Current step
+		);
+
+		// If tank is near the top edge of the screen, move the health bar to the bottom edge of the tank
+		if (this.tank.y < this.tank.height / 2) {
+			console.log("Tank is near the top edge of the screen");
+			this.y = this.tank.y + this.tank.height + this.offset;
+		}
+
+		// Draw health bar
+		this.graphics.fillStyle(Phaser.Display.Color.GetColor(color.r, color.g, color.b), this.opacity);
+		this.graphics.fillRect(
+			this.x - this.scene.sys.game.config.tankWidth / 2,
+			this.y - this.scene.sys.game.config.tankWidth / 2 - this.height - this.offset,
+			this.scene.sys.game.config.tankWidth * healthPercentage,
+			this.height
+		);
+
+		// Draw border for health bar
+		this.graphics.lineStyle(1, 0x00ff00, 1); // Green border
+		this.graphics.strokeRect(
+			this.x - this.scene.sys.game.config.tankWidth / 2,
+			this.y - this.scene.sys.game.config.tankWidth / 2 - this.height - this.offset,
+			this.scene.sys.game.config.tankWidth,
+			this.height
+		);
 	}
 }
