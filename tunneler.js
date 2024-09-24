@@ -169,7 +169,7 @@ class BootScene extends Phaser.Scene {
 
 		// Calculate the total number of bush blocks based on the game area
 		const totalBushBlocks = Math.floor((this.game.config.width * this.game.config.height) / (bushWidth * bushWidth));
-		const reducedBushBlocks = Math.floor(totalBushBlocks * 0.95); // Reduce by 5%
+		//const reducedBushBlocks = Math.floor(totalBushBlocks * 0.95); // Reduce by 5%
 
 		const positions = new Set(); // To track occupied positions
 		let attempts = 0; // Counter for attempts to add bushes
@@ -179,7 +179,7 @@ class BootScene extends Phaser.Scene {
 		this.totalBushesCount = 0; // New variable to track total bushes
 
 		// Fill the world with bush blocks using the configured width
-		while (positions.size < reducedBushBlocks && attempts < maxAttempts) {
+		while (attempts < maxAttempts) {
 			attempts++; // Increment the attempt counter
 			const x = Phaser.Math.Between(0, this.game.config.width - bushWidth);
 			const y = Phaser.Math.Between(0, this.game.config.height - bushWidth);
@@ -206,40 +206,33 @@ class BootScene extends Phaser.Scene {
 				}
 			}
 		}
-
-		// Check if we exceeded max attempts
-		if (attempts >= maxAttempts) {
-			console.warn('Max attempts reached while trying to place bushes. Some bushes may not be placed.');
-		}
-
-		// Remove bush blocks directly under the bases
-		this.bushGroup.children.iterate((bush) => {
-			if (bush.x === this.base1.x && bush.y === this.base1.y) {
-				bush.destroy();
-				this.totalBushesCount--;
-				document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
-			}
-			if (bush.x === this.base2.x && bush.y === this.base2.y) {
-				bush.destroy();
-				this.totalBushesCount--;
-				document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
-			}
-		});
 	}
 
 	createBases() {
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
 		// Create bases at fixed positions within the specified areas
-		// Set base 1 at a random position within the left 25% of the screen. Use absolute values to avoid overlap with the edge of the world.
-		const randomX1 = Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth);
-		const randomY1 = Phaser.Math.Between(0, this.game.config.height - baseWidth);
+		// Set base 1 at a random position within the left 25% of the screen.
+		// randomX1 should always be greater than 0
+		// randomY1 should always be greater than 0 and less than the height of the world
+		// randomX2 should always be less than the width of the world
+		// randomY2 should always be greater than 0 and less than the height of the world
+		let randomX1 = Math.abs(Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth));
+		let randomY1 = Math.abs(Phaser.Math.Between(0, this.game.config.height - baseWidth));
+		randomX1 = randomX1 <= 0 ? baseWidth : randomX1;
+		randomY1 = randomY1 <= baseWidth / 2 ? baseWidth / 2 : randomY1;
+		randomY1 = randomY1 >= this.game.config.height - baseWidth / 2 ? this.game.config.height - baseWidth / 2 : randomY1;
 		this.base1 = this.physics.add.staticSprite(randomX1, randomY1, 'base');
-	
-	// Set base 2 at a random position within the right 25% of the screen, but not overlapping the edge of the world
-		const randomX2 = Phaser.Math.Between(this.game.config.width * 3 / 4, this.game.config.width - baseWidth);
-		const randomY2 = Phaser.Math.Between(0, this.game.config.height - baseWidth);
+		document.getElementById('base1-position').innerText = `(${randomX1}, ${randomY1})`;
+
+		// Set base 2 at a random position within the right 25% of the screen
+		let randomX2 = Math.abs(Phaser.Math.Between(this.game.config.width * 3 / 4, this.game.config.width - baseWidth));
+		let randomY2 = Math.abs(Phaser.Math.Between(baseWidth / 2, this.game.config.height - baseWidth));
+		randomX2 = randomX2 >= this.game.config.width - baseWidth / 2 ? this.game.config.width - baseWidth / 2 : randomX2;
+		randomY2 = randomY2 <= baseWidth / 2 ? baseWidth / 2 : randomY2;
+		randomY2 = randomY2 >= this.game.config.height - baseWidth ? this.game.config.height - baseWidth : randomY2;
 		this.base2 = this.physics.add.staticSprite(randomX2, randomY2, 'base');
+		document.getElementById('base2-position').innerText = `(${randomX2}, ${randomY2})`;
 
 		// Set the display size of the bases
 		this.base1.setDisplaySize(baseWidth, baseWidth); // Set the size of base1
