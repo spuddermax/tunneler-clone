@@ -63,6 +63,7 @@ function startGame() {
 	game.config.treeTrunkWidth = 10; // Set tree trunk width
 	game.config.treeTrunkXoffset = 86; // Set tree trunk x offset
 	game.config.treeTrunkYoffset = 86; // Set tree trunk y offset
+	game.config.treeDensity = 3; // Set tree density
 }
 
 class BootScene extends Phaser.Scene {
@@ -92,7 +93,7 @@ class BootScene extends Phaser.Scene {
 		this.load.image('base', 'images/base.png');
 		this.load.image('explosion', 'images/explosion2.gif');
 		this.load.image('world_floor', 'images/world_floor.png');
-		this.load.image('tree1', 'images/tree1.png');
+		this.load.image('tree1', 'images/tree_1.png');
 		this.load.image('tree2', 'images/tree_2.png');
 		this.load.image('tree3', 'images/tree_3.png');
 		this.load.image('tree4', 'images/tree_4.png');
@@ -110,8 +111,11 @@ class BootScene extends Phaser.Scene {
 		// Create bases first
 		this.createBases();
 
-		// Create the game world
-		this.createWorld();
+		// Create bushes
+		this.createBushes();
+
+		// Create trees
+		this.createTrees();
 
 		// Create tanks
 		this.createTanks();
@@ -170,7 +174,7 @@ class BootScene extends Phaser.Scene {
 		this.updateHealthBars();
 	}
 
-	createWorld() {
+	createBushes() {
 		// Create a group for bush blocks
 		this.bushGroup = this.physics.add.staticGroup();
 
@@ -216,6 +220,60 @@ class BootScene extends Phaser.Scene {
 					// Increment the total bushes count and update the display
 					this.totalBushesCount++;
 					document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
+				}
+			}
+		}
+	}
+
+	// Create trees similar to bushes but with a different image
+
+	createTrees() {
+		// Create a group for tree blocks
+		this.treeGroup = this.physics.add.staticGroup();
+
+		const treeWidth = this.sys.game.config.treeWidth; // Access tree width from config
+		const treeHeight = this.sys.game.config.treeHeight; // Access tree height from config
+		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
+
+		// Calculate the total number of tree blocks based on the game area
+		const totalTreeBlocks = Math.floor((this.game.config.width * this.game.config.height) / (treeWidth * treeHeight)) * this.game.config.treeDensity;
+		console.log('totalTreeBlocks: ', totalTreeBlocks);
+
+		const positions = new Set(); // To track occupied positions
+		let attempts = 0; // Counter for attempts to add trees
+		const maxAttempts = 60; // Maximum attempts to prevent infinite loop
+		// Initialize total trees count
+		this.totalTreesCount = 0; // New variable to track total trees
+
+		// Fill the world with tree blocks using the configured width
+		while (attempts < totalTreeBlocks) {
+			attempts++; // Increment the attempt counter
+			if(attempts > maxAttempts) {
+				break;
+			}
+			const x = Phaser.Math.Between(0, this.game.config.width - treeWidth);
+			const y = Phaser.Math.Between(0, this.game.config.height - treeHeight);
+
+			// Check if the tree block is within the boundaries of the bases
+			const isInBase1 = (x >= this.base1.x - baseWidth / 2 && x <= this.base1.x + baseWidth / 2) &&
+				(y >= this.base1.y - baseWidth / 2 && y <= this.base1.y + baseWidth / 2);
+			const isInBase2 = (x >= this.base2.x - baseWidth / 2 && x <= this.base2.x + baseWidth / 2) &&
+				(y >= this.base2.y - baseWidth / 2 && y <= this.base2.y + baseWidth / 2);
+
+			// Only create tree if it's not within the base boundaries and not overlapping
+			if (!isInBase1 && !isInBase2) {
+				const positionKey = `${Math.floor(x / treeWidth)},${Math.floor(y / treeHeight)}`; // Create a unique key for the position
+				if (!positions.has(positionKey)) {
+					positions.add(positionKey); // Add the position to the set
+					const treeImage = `tree${Phaser.Math.Between(1, 7)}`; // Randomly select tree image
+					const tree = this.treeGroup.create(x, y, treeImage);
+					tree.setDisplaySize(treeWidth, treeHeight); // Set the size of the tree block
+					// Set tree so it's always above everything else except the health bars
+					tree.setDepth(3);
+
+					// Increment the total trees count and update the display
+					this.totalTreesCount++;
+					document.getElementById('total-trees').innerText = this.totalTreesCount; // Update the total trees display
 				}
 			}
 		}
@@ -652,6 +710,9 @@ class HealthBar {
 			Math.floor(this.health * 100) // Current step
 		);
 
+		// Set health bar depth to 4 so it's above the trees
+		this.graphics.setDepth(4);
+
 		// Draw health bar
 		this.graphics.fillStyle(Phaser.Display.Color.GetColor(color.r, color.g, color.b), this.opacity);
 		this.graphics.fillRect(
@@ -669,5 +730,17 @@ class HealthBar {
 			this.scene.sys.game.config.tankWidth,
 			this.height
 		);
+	}
+}
+
+class Tree {
+	constructor(scene, x, y, imageKey) {
+		this.scene = scene;
+		this.x = x;
+		this.y = y;
+		this.width = this.scene.sys.game.config.treeWidth;
+		this.height = this.scene.sys.game.config.treeHeight;
+		this.image = this.scene.add.image(this.x, this.y, imageKey);
+		this.image.setDisplaySize(this.width, this.height);
 	}
 }
