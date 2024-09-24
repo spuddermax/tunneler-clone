@@ -103,12 +103,17 @@ class BootScene extends Phaser.Scene {
 		this.load.image('tree5', 'images/tree_5.png');
 		this.load.image('tree6', 'images/tree_6.png');
 		this.load.image('tree7', 'images/tree_7.png');
+		
+		// Load firing sound
+		this.load.audio('fireSound', ['sfx/pew.mp3']); // Adjust the path as necessary
 	}
 
 	create() {
 		// Set the tiled background based on the world size
 		const worldWidth = this.game.config.width;
 		const worldHeight = this.game.config.height;
+
+		this.fireSound = this.sound.add('fireSound', { loop: false, volume: 0.5 });
 
 		// Add a border to the game
 		const borderTop = this.add.rectangle(worldWidth/2, this.game.config.borderSize / 2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
@@ -470,8 +475,6 @@ class BootScene extends Phaser.Scene {
 	shootBullet(tank, tankName) {
 		const bulletWidth = this.sys.game.config.bulletWidth; // Access bullet width from config
 		const bullet = this.physics.add.sprite(tank.x, tank.y, 'bullet');
-		//bullet.setCollideWorldBounds(true);
-		//bullet.body.onWorldBounds = true; // Enable world bounds for the bullet
 		bullet.setDisplaySize(bulletWidth, bulletWidth); // Set the size of the bullet
 
 		// Set a circular hitbox for the bullet
@@ -489,6 +492,9 @@ class BootScene extends Phaser.Scene {
 
 		// Set the bullet's rotation to match the tank's rotation
 		bullet.rotation = tank.rotation;
+
+		// Play firing sound
+		this.fireSound.play();
 
 		// Add overlap detection for hitting tanks
 		if (tankName === 'tank1') {
@@ -594,7 +600,7 @@ class BootScene extends Phaser.Scene {
 
 		// Clear surrounding bush
 		this.bushGroup.children.iterate((bush) => {
-			if (bush && Phaser.Math.Distance.Between(tank.x, tank.y, bush.x, bush.y) < 100) {
+			if (bush && Phaser.Math.Distance.Between(tank.x, tank.y, bush.x, bush.y) < 200) {
 				bush.destroy(); // Ensure bush exists before trying to destroy it
 			}
 		});
