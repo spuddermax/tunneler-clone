@@ -383,7 +383,7 @@ class BootScene extends Phaser.Scene {
 
 		this.healthBar1.x = this.tank1.x;
 		this.healthBar1.y = this.tank1.y;
-		document.getElementById('tank1-health-bar-position').innerText = `(${this.healthBar1.x}, ${this.healthBar1.y})`;
+		document.getElementById('tank1-health-bar-position').innerText = `(${Math.floor(this.healthBar1.x)}, ${Math.floor(this.healthBar1.y)})`;
 
 		// If the tank is at the top edge of the screen, move its health bar to the bottom edge of the tank
 		if (this.tank1.y < (this.tank1.height / 2) + this.sys.game.config.healthBarOffset + this.sys.game.config.healthBarHeight ) {
@@ -420,7 +420,7 @@ class BootScene extends Phaser.Scene {
 
 		this.healthBar2.x = this.tank2.x;
 		this.healthBar2.y = this.tank2.y;
-		document.getElementById('tank2-health-bar-position').innerText = `(${this.healthBar2.x}, ${this.healthBar2.y})`;
+		document.getElementById('tank2-health-bar-position').innerText = `(${Math.floor(this.healthBar2.x)}, ${Math.floor(this.healthBar2.y)})`;
 
 		// If the tank is at the top edge of the screen, move its health bar to the bottom edge of the tank
 		if (this.tank2.y < (this.tank2.height / 2) + this.sys.game.config.healthBarOffset + this.sys.game.config.healthBarHeight ) {
