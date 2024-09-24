@@ -282,12 +282,7 @@ class BootScene extends Phaser.Scene {
 	createBases() {
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
-		// Create bases at fixed positions within the specified areas
 		// Set base 1 at a random position within the left 25% of the screen.
-		// randomX1 should always be greater than 0
-		// randomY1 should always be greater than 0 and less than the height of the world
-		// randomX2 should always be less than the width of the world
-		// randomY2 should always be greater than 0 and less than the height of the world
 		let randomX1 = Math.abs(Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth));
 		let randomY1 = Math.abs(Phaser.Math.Between(0, this.game.config.height - baseWidth));
 		randomX1 = randomX1 <= baseWidth / 2 ? baseWidth / 2 : randomX1;
@@ -539,7 +534,7 @@ class BootScene extends Phaser.Scene {
 						this.tank2Kills += 1;
 						tank2KillsEl.innerText = `${this.tank2Kills}`;
 						this.resetTank(this.tank1, 'tank1');
-						this.resetTank(this.tank2, 'tank2');
+						//this.resetTank(this.tank2, 'tank2');
 						this.tank1Health = 100;
 						tank1HealthEl.innerText = `${this.tank1Health}%`;
 						this.checkWinCondition('tank2');
@@ -554,7 +549,7 @@ class BootScene extends Phaser.Scene {
 						this.tank1Kills += 1;
 						tank1KillsEl.innerText = `${this.tank1Kills}`;
 						this.resetTank(this.tank2, 'tank2');
-						this.resetTank(this.tank1, 'tank1');
+						//this.resetTank(this.tank1, 'tank1');
 						this.tank2Health = 100;
 						tank2HealthEl.innerText = `${this.tank2Health}%`;
 						this.checkWinCondition('tank1');
