@@ -92,7 +92,8 @@ class BootScene extends Phaser.Scene {
 		this.load.image('bullet', 'images/bullet.png');
 		this.load.image('base', 'images/base.png');
 		this.load.image('explosion', 'images/explosion2.gif');
-		this.load.image('world_floor', 'images/world_floor.png');
+		this.load.image('world_floor_1', 'images/world_floor_1.png');
+		this.load.image('world_floor_2', 'images/world_floor_2.png');
 		this.load.image('tree1', 'images/tree_1.png');
 		this.load.image('tree2', 'images/tree_2.png');
 		this.load.image('tree3', 'images/tree_3.png');
@@ -106,7 +107,10 @@ class BootScene extends Phaser.Scene {
 		// Set the tiled background based on the world size
 		const worldWidth = this.game.config.width;
 		const worldHeight = this.game.config.height;
-		this.add.tileSprite(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, 'world_floor'); // Center the tiled background
+
+		// Pick a random tiled background
+		const tiledBackground = Phaser.Math.Between(1, 2);
+		this.add.tileSprite(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, `world_floor_${tiledBackground}`); // Center the tiled background
 
 		// Create bases first
 		this.createBases();
