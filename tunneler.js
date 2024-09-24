@@ -542,6 +542,10 @@ class BootScene extends Phaser.Scene {
 						this.tank1Health = 100;
 						tank1HealthEl.innerText = `${this.tank1Health}%`;
 						this.checkWinCondition('tank2');
+
+						// Fade out the tank1 camera then fade back in
+						this.camera1.fadeOut(500, 0, 0, 0);
+						this.camera1.fadeIn(5000, 0, 0, 0);
 				}
 		}
 	}
@@ -557,6 +561,10 @@ class BootScene extends Phaser.Scene {
 						this.tank2Health = 100;
 						tank2HealthEl.innerText = `${this.tank2Health}%`;
 						this.checkWinCondition('tank1');
+
+						// Fade out the tank2 camera then fade back in
+						this.camera2.fadeOut(500, 0, 0, 0);
+						this.camera2.fadeIn(5000, 0, 0, 0);
 				}
 		}
 	}
