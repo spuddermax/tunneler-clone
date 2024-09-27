@@ -10,8 +10,10 @@ const tank2HealthEl = document.getElementById('tank2-health');
 const tank1KillsEl = document.getElementById('tank1-kills');
 const tank2KillsEl = document.getElementById('tank2-kills');
 const gameTally = document.getElementById('game-tally');
+const loadingScreen = document.getElementById('loading-screen');
 
 startBtn.onclick = () => {
+	loadingScreen.style.display = 'flex';
 	welcomeScreen.style.display = 'none';
 	gameContainer.style.display = 'block';
 	gameTally.style.display = 'block';
@@ -27,6 +29,8 @@ closeModalBtn.onclick = () => {
 };
 
 function startGame() {
+	gameContainer.style.display = 'block';
+
 	const config = {
 		type: Phaser.AUTO,
 		parent: 'game-container',
@@ -66,6 +70,12 @@ function startGame() {
 	game.config.treeTrunkXoffset = 86; // Set tree trunk x offset
 	game.config.treeTrunkYoffset = 86; // Set tree trunk y offset
 	game.config.treeDensity = 3; // Set tree density
+
+	game.events.on('ready', () => {
+		loadingScreen.style.display = 'none';
+		gameContainer.style.display = 'block';
+		gameTally.style.display = 'block';
+	});
 }
 
 class BootScene extends Phaser.Scene {
@@ -201,6 +211,8 @@ class BootScene extends Phaser.Scene {
 
 		// Initial health bar setup
 		this.updateHealthBars();
+
+		this.game.events.emit('ready');
 	}
 
 	createBushes() {
