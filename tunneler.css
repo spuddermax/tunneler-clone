@@ -54,10 +54,32 @@ body {
 #game-tally {
 	display: none;
 	position: absolute;
-	width: 200px;
+	width: 100px;
 	top: 10px;
-	right: 50%;
-	margin-right: -100px;
+	left: 50%;
+	transform: translateX(-50%);
+	text-align: center;
+	background-color: #00000077;
+	padding: 10px;
+	border-radius: 10px;
+	color: #00ff00;
+	font-family: "Courier New", Courier, monospace;
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.tank-icon {
+	width: 25%;
+	height: auto;
+	vertical-align: middle;
+}
+
+#tank1-stats {
+	color: #00ff00;
+}
+
+#tank2-stats {
+	color: #00ff00;
 }
 
 #instructions-modal {
