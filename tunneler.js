@@ -51,6 +51,7 @@ function startGame() {
 	game.config.borderSize = 10; // Set border size
 	game.config.borderColor = 0x336699; // Set border color to blue
 	game.config.bushWidth = 24; // Set bush width
+	game.config.trunkWidth = 10; // Set trunk width
 	game.config.tankWidth = 72; // Set tank width
 	game.config.bulletWidth = 8; // Set bullet width
 	game.config.baseWidth = 400; // Set base width
@@ -102,6 +103,7 @@ class BootScene extends Phaser.Scene {
 		this.load.image('tank1', 'images/tank_grey.png');
 		this.load.image('tank2', 'images/tank_red.png');
 		this.load.image('bullet', 'images/bullet.png');
+		this.load.image('trunk', 'images/trunk.png');
 		this.load.image('base', 'images/base.png');
 		this.load.image('explosion', 'images/explosion2.gif');
 		this.load.image('world_floor_1', 'images/world_floor_1.png');
@@ -167,6 +169,7 @@ class BootScene extends Phaser.Scene {
 		// Toggle debug-stats
 		this.toggleKeys.I.on('down', () => {
 			debugStats.style.display = debugStats.style.display === 'block' ? 'none' : 'block';
+			this.toggleTrunkVisibility(); // Toggle trunk visibility based on debug state
 		});
 
 		// Initialize variables
@@ -213,6 +216,13 @@ class BootScene extends Phaser.Scene {
 		this.updateHealthBars();
 
 		this.game.events.emit('ready');
+	}
+
+	toggleTrunkVisibility() {
+		const isDebugVisible = debugStats.style.display === 'block';
+		this.trunkGroup.children.iterate((trunk) => {
+			trunk.setVisible(isDebugVisible); // Set visibility based on debug state
+		});
 	}
 
 	createBushes() {
@@ -272,6 +282,10 @@ class BootScene extends Phaser.Scene {
 		// Create a group for tree blocks
 		this.treeGroup = this.physics.add.staticGroup();
 
+		// Create a group for tree trunks
+		this.trunkGroup = this.physics.add.staticGroup();
+		const trunkWidth = this.sys.game.config.trunkWidth;
+
 		const treeWidth = this.sys.game.config.treeWidth; // Access tree width from config
 		const treeHeight = this.sys.game.config.treeHeight; // Access tree height from config
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
@@ -311,6 +325,17 @@ class BootScene extends Phaser.Scene {
 					tree.setDisplaySize(treeWidth, treeHeight); // Set the size of the tree block
 					// Set tree so it's always above everything else except the health bars
 					tree.setDepth(3);
+
+					// Define trunk position relative to the tree's location
+					const trunkX = x; // 86 pixels from the left of the tree
+					const trunkY = y + 86; // 86 pixels from the bottom of the tree
+
+					// Create a green trunk block as a static collider
+					const trunk = this.trunkGroup.create(trunkX, trunkY, 'trunk'); // Use trunk sprite as base
+					trunk.setTint(0x00ff00); // Tint the sprite green
+					trunk.setDisplaySize(trunkWidth, trunkWidth); // Set the size of the trunk collider
+					trunk.setDepth(4); // Set the depth of the trunk to be above the tree
+					trunk.setVisible(false); // Make the trunk invisible
 
 					// Increment the total trees count and update the display
 					this.totalTreesCount++;
@@ -369,6 +394,10 @@ class BootScene extends Phaser.Scene {
 		// Add collision with bush
 		this.physics.add.collider(this.tank1, this.bushGroup, this.clearbush, null, this);
 		this.physics.add.collider(this.tank2, this.bushGroup, this.clearbush, null, this);
+
+		// Add collision between tanks and trunks
+		this.physics.add.collider(this.tank1, this.trunkGroup);
+		this.physics.add.collider(this.tank2, this.trunkGroup);
 
 		// Add collision between tanks
 		this.physics.add.collider(this.tank1, this.tank2);
@@ -543,32 +572,17 @@ class BootScene extends Phaser.Scene {
 
 		// Bullet collides with bush
 		this.physics.add.collider(bullet, this.bushGroup, (bullet, bush) => {
-				const impactX = bush.x;
-				const impactY = bush.y;
-				const range = Phaser.Math.Between(1, 3); // Random range between 2 and 4 blocks
-
-				// Remove bush in a starburst pattern
-				for (let dx = -range; dx <= range; dx++) {
-						for (let dy = -range; dy <= range; dy++) {
-								// Check if the distance from the impact point is within the range
-								if (Math.abs(dx) + Math.abs(dy) <= range) {
-										const targetX = impactX + dx * this.sys.game.config.bushWidth;
-										const targetY = impactY + dy * this.sys.game.config.bushWidth;
-
-										// Find the bush block at the target position
-										const targetbush = this.bushGroup.getChildren().find(d => d.x === targetX && d.y === targetY);
-										if (targetbush) {
-												targetbush.destroy(); // Remove the bush block
-										}
-								}
-						}
-				}
-
 				// Play bushHit sound
 				this.bushHit.play();
-
 				bush.destroy(); // Also destroy the original bush block
 				bullet.destroy(); // Destroy the bullet
+		});
+
+		// Bullet collides with trunk
+		this.physics.add.collider(bullet, this.trunkGroup, (bullet, trunk) => {
+			// Play bushHit sound
+			this.bushHit.play();
+			bullet.destroy();
 		});
 	}
 
@@ -724,19 +738,41 @@ class BootScene extends Phaser.Scene {
 
 	checkWinCondition(tankName) {
 		if (this.tank1Kills >= 5) {
-			alert('Tank 1 Wins!');
-			this.scene.restart();
-			this.resetScores();
+			// Stop all sounds playing
+			this.vroom.stop();
+			this.vroom2.stop();
+			this.fireSound.stop();
+			this.tankHit.stop();
+			this.bushHit.stop();
+			
+			// Use a setTimeout to ensure all sounds have stopped before showing the alert
+			setTimeout(() => {
+				alert('Tank 1 Wins!');
+				this.scene.restart();
+				this.resetScores();
+			}, 100);
 		} else if (this.tank2Kills >= 5) {
-			alert('Tank 2 Wins!');
-			this.scene.restart();
-			this.resetScores();
+			this.vroom.stop();
+			this.vroom2.stop();
+			this.fireSound.stop();
+			this.tankHit.stop();
+			this.bushHit.stop();
+			
+			// Use a setTimeout to ensure all sounds have stopped before showing the alert
+			setTimeout(() => {
+				alert('Tank 2 Wins!');
+				this.scene.restart();
+				this.resetScores();
+			}, 100);
 		}
 	}
 
 	resetScores() {
 		this.tank1Kills = 0;
 		this.tank2Kills = 0;
+		// update the kills display
+		tank1KillsEl.innerText = `${this.tank1Kills}`;
+		tank2KillsEl.innerText = `${this.tank2Kills}`;
 	}
 
 	updateHealthBars() {
