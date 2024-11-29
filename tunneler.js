@@ -11,6 +11,18 @@ const tank1KillsEl = document.getElementById('tank1-kills');
 const tank2KillsEl = document.getElementById('tank2-kills');
 const gameTally = document.getElementById('game-tally');
 const loadingScreen = document.getElementById('loading-screen');
+const entryScreen = document.getElementById('entry-screen');
+const backgroundMusic = new Audio('sfx/GalacticWhimsyExtv2.2.mp3');
+const volumeSlider = document.getElementById('volume-slider');
+
+// Set the initial volume of the background music
+backgroundMusic.volume = volumeSlider.value;
+
+// Event listener for volume slider
+volumeSlider.addEventListener('input', (event) => {
+    const volume = event.target.value; // Get the current value of the slider
+    backgroundMusic.volume = volume; // Set the background music volume
+});
 
 startBtn.onclick = () => {
 	loadingScreen.style.display = 'flex';
@@ -18,6 +30,7 @@ startBtn.onclick = () => {
 	gameContainer.style.display = 'block';
 	gameTally.style.display = 'block';
 	startGame();
+	fadeOutMusic();	
 };
 
 instructionsBtn.onclick = () => {
@@ -27,6 +40,35 @@ instructionsBtn.onclick = () => {
 closeModalBtn.onclick = () => {
 	instructionsModal.style.display = 'none';
 };
+
+document.getElementById('roll-btn').addEventListener('click', () => {
+    entryScreen.style.display = 'none';
+    welcomeScreen.style.display = 'block';
+    backgroundMusic.play();
+});
+
+// Fade out the music to 10% volume
+function fadeOutMusic() {
+	const fadeDuration = 2000; // Duration of fade-out in milliseconds
+	const fadeInterval = 100; // Interval for volume reduction in milliseconds
+	const fadeSteps = fadeDuration / fadeInterval; // Number of steps for fading
+	let currentStep = 0;
+	const targetVolume = 0.05; // Target volume of 10%
+	const volumeStep = (1 - targetVolume) / fadeSteps; // Step size to reach target
+
+	const fadeOut = setInterval(() => {
+		currentStep++;
+		const volume = Math.max(targetVolume, backgroundMusic.volume - volumeStep); // Decrease volume
+		backgroundMusic.volume = volume;
+		volumeSlider.value = volume; // Update slider value to match music volume
+
+		if (currentStep >= fadeSteps) {
+			clearInterval(fadeOut);
+			backgroundMusic.volume = targetVolume; // Set final volume to 10%
+			volumeSlider.value = targetVolume; // Set slider to final volume
+		}
+	}, fadeInterval);
+}
 
 function startGame() {
 	gameContainer.style.display = 'block';

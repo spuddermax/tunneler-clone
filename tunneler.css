@@ -7,11 +7,18 @@ body {
 }
 
 #welcome-screen {
+	display: none;
 	text-align: center;
-	margin-top: 200px;
-	max-width: 400px;
+	margin-top: 100px;
+	max-width: 300px;
+	min-width: 300px;
 	margin-left: auto;
 	margin-right: auto;
+	background-image: url('images/tank_tag_splash_screen.jpeg');
+    background-size: cover; /* Cover the entire screen */
+    background-position: center; /* Center the image */
+	padding: 20px; /* Add some padding */
+	border-radius: 10px; /* Optional: Rounded corners */
 }
 
 #instructions-modal {
@@ -60,7 +67,7 @@ body {
 	transform: translateX(-50%);
 	text-align: center;
 	background-color: #00000077;
-	padding: 10px;
+	padding: 2px;
 	border-radius: 10px;
 	color: #00ff00;
 	font-family: "Courier New", Courier, monospace;
@@ -68,18 +75,20 @@ body {
 	font-weight: bold;
 }
 
+#game-tally h2 {
+	margin: 20px 0px 2px 0px;
+}
+
+#game-tally p {
+	padding: 0px;
+	margin: 2px;
+	color: #00ff00;
+}
+
 .tank-icon {
 	width: 25%;
 	height: auto;
 	vertical-align: middle;
-}
-
-#tank1-stats {
-	color: #00ff00;
-}
-
-#tank2-stats {
-	color: #00ff00;
 }
 
 #instructions-modal {
@@ -115,5 +124,59 @@ body {
 	}
 	100% {
 		transform: rotate(360deg);
+	}
+}
+
+#entry-screen {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+}
+
+#roll-btn {
+	padding: 10px 20px;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+#volume-control {
+    position: absolute; /* Position it absolutely */
+    top: 10px; /* Distance from the top of the page */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust to center the element */
+    z-index: 10; /* Ensure it appears above other elements */
+    background-color: #00000077; /* Optional: Add a background for better visibility */
+    padding: 0px; /* Optional: Add some padding */
+    border-radius: 5px; /* Optional: Rounded corners */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow for depth */
+}
+
+/* Responsive styles */
+@media (max-width: 600px) {
+	#welcome-screen {
+		max-width: 90%; /* Allow more width on smaller screens */
+		margin-top: 50px; /* Adjust margin for smaller screens */
+		padding: 10px; /* Reduce padding */
+	}
+	
+	#welcome-screen h1 {
+		font-size: 24px; /* Adjust font size for smaller screens */
+	}
+
+	#welcome-screen p {
+		font-size: 16px; /* Adjust font size for smaller screens */
+	}
+
+	#welcome-screen button {
+		font-size: 16px; /* Adjust button font size */
+		padding: 10px; /* Adjust button padding */
+		width: 100%; /* Make buttons full width */
 	}
 }
