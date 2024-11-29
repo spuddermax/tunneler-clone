@@ -16,9 +16,8 @@ const volumeSlider = document.getElementById('volume-slider');
 const playPauseBtn = document.getElementById('play-pause-btn');
 
 let musicPlaylist = [
-    // 'sfx/music/GalacticWhimsyExtv2.2.mp3',
-    'sfx/music/BattlefieldJoyExtv2.1.mp3',
-	'sfx/music/TanksInMotionExtv2.1.2.mp3'
+    'sfx/music/GalacticWhimsyExtv2.2.mp3',
+    'sfx/music/BattlefieldJoyExtv2.1.mp3'
 ];
 shuffleArray(musicPlaylist);
 
@@ -34,9 +33,8 @@ backgroundMusic.addEventListener('ended', () => {
 
 
 // Set the background music to loop through the playlist
-// Note: The 'ended' event listener above handles playlist looping
-// so we don't need to set loop=true which would just repeat one track
-backgroundMusic.loop = false;
+
+backgroundMusic.loop = true;
 
 // Set the initial volume of the background music
 backgroundMusic.volume = volumeSlider.value;
@@ -180,6 +178,12 @@ class BootScene extends Phaser.Scene {
 		this.base2 = null; // Base for tank2
 		this.healthBar1 = null; // Health bar for tank1
 		this.healthBar2 = null; // Health bar for tank2
+		this.aiUpdateInterval = 10; // How often to update AI decisions (ms)
+		this.aiLastUpdate = 0;
+		this.aiState = 'chase'; // States: chase, retreat, attack
+		this.aiMinAttackDistance = 300; // Minimum distance to start attacking
+		this.aiMaxAttackDistance = 500; // Maximum distance to chase before shooting
+		this.aiRetreatHealth = 30; // Health threshold to retreat
 	}
 
 	preload() {
@@ -511,7 +515,7 @@ class BootScene extends Phaser.Scene {
 
 	}
 
-	update() {
+	update(time) {
 		// Update tank1 movement
 		// W key should always move forward, S key should always move backward
 		// A key should always turn left, D key should always turn right
@@ -625,6 +629,12 @@ class BootScene extends Phaser.Scene {
 
 		// Update health bars in each frame
 		this.updateHealthBars();
+
+		// Handle AI updates on interval
+		if (time > this.aiLastUpdate + this.aiUpdateInterval) {
+			this.updateAI();
+			this.aiLastUpdate = time;
+		}
 	}
 
 	shootBullet(tank, tankName) {
@@ -871,6 +881,213 @@ class BootScene extends Phaser.Scene {
 		window.removeEventListener('resize', this.updateCameraSizes);
 		// ... any other cleanup code ...
 	}
+
+	updateAI() {
+		// Skip if tank2 doesn't exist
+		if (!this.tank2) return;
+
+		// Calculate distance to player
+		const distanceToPlayer = Phaser.Math.Distance.Between(
+			this.tank1.x, this.tank1.y,
+			this.tank2.x, this.tank2.y
+		);
+
+		// Determine AI state
+		if (this.tank2Health <= this.aiRetreatHealth) {
+			this.aiState = 'retreat';
+		} else if (distanceToPlayer <= this.aiMaxAttackDistance && 
+				   distanceToPlayer >= this.aiMinAttackDistance) {
+			this.aiState = 'attack';
+		} else if (this.shouldAvoidTrunks()) { // Check if it should avoid trunks
+			this.aiState = 'avoid';
+		} else {
+			this.aiState = 'chase';
+		}
+
+		// Execute AI behavior based on state
+		switch (this.aiState) {
+			case 'retreat':
+				this.aiRetreat();
+				break;
+			case 'attack':
+				this.aiAttack();
+				break;
+			case 'chase':
+				this.aiChase();
+				break;
+			case 'avoid':
+				this.aiAvoidTrunks();
+				break;
+		}
+	}
+
+	shouldAvoidTrunks() {
+		// Check if there are any trunks nearby
+		let shouldAvoid = false;
+		this.trunkGroup.children.iterate((trunk) => {
+			const distanceToTrunk = Phaser.Math.Distance.Between(this.tank2.x, this.tank2.y, trunk.x, trunk.y);
+			if (distanceToTrunk < 100) { // Adjust this distance as needed
+				shouldAvoid = true;
+			}
+		});
+		return shouldAvoid;
+	}
+
+	aiRetreat() {
+		// Calculate angle to base2
+		const angleToBase = Phaser.Math.Angle.Between(
+			this.tank2.x, this.tank2.y,
+			this.base2.x, this.base2.y
+		);
+
+		this.aiRotateTowards(angleToBase);
+		
+		// Move towards base
+		const distance = Phaser.Math.Distance.Between(
+			this.tank2.x, this.tank2.y,
+			this.base2.x, this.base2.y
+		);
+
+		if (distance > 50) {
+			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
+			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
+		}
+
+		// Avoid trees
+		this.aiAvoidTrunks();
+	}
+
+	aiAttack() {
+		// Calculate angle to player
+		const angleToPlayer = Phaser.Math.Angle.Between(
+			this.tank2.x, this.tank2.y,
+			this.tank1.x, this.tank1.y
+		);
+
+		this.aiRotateTowards(angleToPlayer);
+
+		// If facing roughly towards player, shoot
+		if (Math.abs(this.tank2.rotation - angleToPlayer) < 0.1) {
+			if (this.canFireTank2) {
+				this.shootBullet(this.tank2, 'tank2');
+				this.canFireTank2 = false;
+				this.time.delayedCall(this.fireRate, () => {
+					this.canFireTank2 = true;
+				});
+			}
+		}
+	}
+
+	aiChase() {
+		// Calculate angle to player
+		const angleToPlayer = Phaser.Math.Angle.Between(
+			this.tank2.x, this.tank2.y,
+			this.tank1.x, this.tank1.y
+		);
+
+		this.aiRotateTowards(angleToPlayer);
+
+		// Move towards player if too far
+		const distance = Phaser.Math.Distance.Between(
+			this.tank2.x, this.tank2.y,
+			this.tank1.x, this.tank1.y
+		);
+
+		if (distance > this.aiMaxAttackDistance) {
+			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
+			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
+		} else if (distance < this.aiMinAttackDistance) {
+			// Back up if too close
+			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed);
+			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed);
+		}
+
+		// Avoid trees
+		this.aiAvoidTrunks();
+	}
+
+	aiRotateTowards(targetAngle) {
+		// Normalize current rotation to be between -PI and PI
+		let currentRotation = this.tank2.rotation;
+		while (currentRotation < -Math.PI) currentRotation += 2 * Math.PI;
+		while (currentRotation > Math.PI) currentRotation -= 2 * Math.PI;
+
+		// Calculate shortest rotation direction
+		let diff = targetAngle - currentRotation;
+		while (diff < -Math.PI) diff += 2 * Math.PI;
+		while (diff > Math.PI) diff -= 2 * Math.PI;
+
+		// Rotate towards target
+		if (diff > 0.1) {
+			this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
+		} else if (diff < -0.1) {
+			this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
+		}
+	}
+
+	aiAvoidTrunks() {
+		// Initialize cumulative avoidance vector
+		let avoidanceX = 0;
+		let avoidanceY = 0;
+	
+		// Constants
+		const avoidDistance = 100; // Distance to start avoiding trunks
+		const avoidStrength = 200; // Strength of avoidance force
+	
+		// Iterate over all trunks
+		this.trunkGroup.children.iterate((trunk) => {
+			const distanceToTrunk = Phaser.Math.Distance.Between(
+				this.tank2.x, this.tank2.y,
+				trunk.x, trunk.y
+			);
+	
+			if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) { // Avoid division by zero
+				// Calculate vector pointing away from the trunk, inversely proportional to the distance squared
+				const dx = this.tank2.x - trunk.x;
+				const dy = this.tank2.y - trunk.y;
+				const distanceSquared = distanceToTrunk * distanceToTrunk;
+	
+				// Accumulate the avoidance vector
+				avoidanceX += (dx / distanceSquared);
+				avoidanceY += (dy / distanceSquared);
+			}
+		});
+	
+		// Apply avoidance if necessary
+		if (avoidanceX !== 0 || avoidanceY !== 0) {
+			// Normalize the avoidance vector
+			const avoidanceVector = new Phaser.Math.Vector2(avoidanceX, avoidanceY).normalize();
+	
+			// Scale the avoidance vector
+			avoidanceVector.scale(avoidStrength);
+	
+			// Determine the tank's desired movement towards the player
+			const targetVector = new Phaser.Math.Vector2(
+				this.tank1.x - this.tank2.x,
+				this.tank1.y - this.tank2.y
+			).normalize();
+	
+			// Combine the target direction and avoidance vector
+			const movementVector = targetVector.add(avoidanceVector).normalize().scale(this.sys.game.config.tankForwardSpeed);
+	
+			// Set the tank's velocity
+			this.tank2.setVelocity(movementVector.x, movementVector.y);
+	
+			// Adjust the tank's rotation to face the movement direction
+			this.tank2.rotation = movementVector.angle();
+		} else {
+			// No trunks nearby, proceed towards the target
+			const targetVector = new Phaser.Math.Vector2(
+				this.tank1.x - this.tank2.x,
+				this.tank1.y - this.tank2.y
+			).normalize().scale(this.sys.game.config.tankForwardSpeed);
+			this.tank2.setVelocity(targetVector.x, targetVector.y);
+			this.tank2.rotation = targetVector.angle();
+		}
+	}
+	
+	
+	
 }
 
 class HealthBar {
