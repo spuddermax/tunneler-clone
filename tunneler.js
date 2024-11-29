@@ -14,6 +14,10 @@ const loadingScreen = document.getElementById('loading-screen');
 const entryScreen = document.getElementById('entry-screen');
 const backgroundMusic = new Audio('sfx/GalacticWhimsyExtv2.2.mp3');
 const volumeSlider = document.getElementById('volume-slider');
+const playPauseBtn = document.getElementById('play-pause-btn');
+
+// Set the background music to loop
+backgroundMusic.loop = true;
 
 // Set the initial volume of the background music
 backgroundMusic.volume = volumeSlider.value;
@@ -22,6 +26,27 @@ backgroundMusic.volume = volumeSlider.value;
 volumeSlider.addEventListener('input', (event) => {
     const volume = event.target.value; // Get the current value of the slider
     backgroundMusic.volume = volume; // Set the background music volume
+});
+
+// Event listener for play/pause button
+playPauseBtn.onclick = () => {
+    if (backgroundMusic.paused) {
+        backgroundMusic.play(); // Play the music
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; // Change to pause icon
+    } else {
+        backgroundMusic.pause(); // Pause the music
+        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; // Change to play icon
+    }
+};
+
+// Event listener for when the music starts
+backgroundMusic.addEventListener('play', () => {
+    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; // Change to pause icon when music starts
+});
+
+// Event listener for when the music ends
+backgroundMusic.addEventListener('ended', () => {
+    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; // Change to play icon when music ends
 });
 
 startBtn.onclick = () => {
