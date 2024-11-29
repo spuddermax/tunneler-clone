@@ -12,12 +12,31 @@ const tank2KillsEl = document.getElementById('tank2-kills');
 const gameTally = document.getElementById('game-tally');
 const loadingScreen = document.getElementById('loading-screen');
 const entryScreen = document.getElementById('entry-screen');
-const backgroundMusic = new Audio('sfx/GalacticWhimsyExtv2.2.mp3');
 const volumeSlider = document.getElementById('volume-slider');
 const playPauseBtn = document.getElementById('play-pause-btn');
 
-// Set the background music to loop
-backgroundMusic.loop = true;
+let musicPlaylist = [
+    'sfx/music/GalacticWhimsyExtv2.2.mp3',
+    'sfx/music/BattlefieldJoyExtv2.1.mp3',
+	'sfx/music/TanksInMotionExtv2.1.2.mp3'
+];
+shuffleArray(musicPlaylist);
+
+let currentTrackIndex = 0;
+const backgroundMusic = new Audio(musicPlaylist[currentTrackIndex]);
+
+// Set up playlist functionality
+backgroundMusic.addEventListener('ended', () => {
+    currentTrackIndex = (currentTrackIndex + 1) % musicPlaylist.length;
+    backgroundMusic.src = musicPlaylist[currentTrackIndex];
+    backgroundMusic.play();
+});
+
+
+// Set the background music to loop through the playlist
+// Note: The 'ended' event listener above handles playlist looping
+// so we don't need to set loop=true which would just repeat one track
+backgroundMusic.loop = false;
 
 // Set the initial volume of the background music
 backgroundMusic.volume = volumeSlider.value;
@@ -911,4 +930,11 @@ class Tree {
 		this.image = this.scene.add.image(this.x, this.y, imageKey);
 		this.image.setDisplaySize(this.width, this.height);
 	}
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
 }
