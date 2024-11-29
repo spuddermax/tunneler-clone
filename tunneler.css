@@ -12,9 +12,10 @@ body {
 	margin-top: 100px;
 	max-width: 300px;
 	min-width: 300px;
+	min-height: 300px;
 	margin-left: auto;
 	margin-right: auto;
-	background-image: url('images/tank_tag_splash_screen.jpeg');
+	background-image: url('images/TankTagAnimation.gif');
     background-size: cover; /* Cover the entire screen */
     background-position: center; /* Center the image */
 	padding: 20px; /* Add some padding */
