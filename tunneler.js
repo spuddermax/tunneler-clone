@@ -16,7 +16,7 @@ const volumeSlider = document.getElementById('volume-slider');
 const playPauseBtn = document.getElementById('play-pause-btn');
 
 let musicPlaylist = [
-    'sfx/music/GalacticWhimsyExtv2.2.mp3',
+    // 'sfx/music/GalacticWhimsyExtv2.2.mp3',
     'sfx/music/BattlefieldJoyExtv2.1.mp3',
 	'sfx/music/TanksInMotionExtv2.1.2.mp3'
 ];
