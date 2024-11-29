@@ -885,42 +885,33 @@ class BootScene extends Phaser.Scene {
 	updateAI() {
 		// Skip if tank2 doesn't exist
 		if (!this.tank2) return;
-
+	
 		// Calculate distance to player
 		const distanceToPlayer = Phaser.Math.Distance.Between(
 			this.tank1.x, this.tank1.y,
 			this.tank2.x, this.tank2.y
 		);
-
+	
 		// Determine AI state
 		if (this.tank2Health <= this.aiRetreatHealth) {
 			this.aiState = 'retreat';
 		} else if (distanceToPlayer <= this.aiMaxAttackDistance && 
 				   distanceToPlayer >= this.aiMinAttackDistance) {
 			this.aiState = 'attack';
-		} else if (this.shouldAvoidTrunks()) { // Check if it should avoid trunks
-			this.aiState = 'avoid';
 		} else {
 			this.aiState = 'chase';
 		}
-
+	
 		// Execute AI behavior based on state
 		switch (this.aiState) {
 			case 'retreat':
-				console.log('retreat');
 				this.aiRetreat();
 				break;
 			case 'attack':
-				console.log('attack');
 				this.aiAttack();
 				break;
 			case 'chase':
-				console.log('chase');
 				this.aiChase();
-				break;
-			case 'avoid':
-				console.log('avoid');
-				this.aiAvoidTrunks();
 				break;
 		}
 	}
@@ -938,18 +929,135 @@ class BootScene extends Phaser.Scene {
 	}
 
 	aiRetreat() {
+		const stopDistance = 50; // Stop when close to the base
+		this.aiMoveTowardsTarget(this.base2.x, this.base2.y, stopDistance);
+	}
+
+	aiAttack() {
+		// Face towards the player but don't necessarily move towards them
 		// Constants
 		const avoidDistance = 100; // Distance to start avoiding trunks
 		const avoidStrength = 200; // Strength of avoidance force
-		const stopDistance = 50; // Distance to base to stop moving
 	
-		// Calculate distance to base
-		const distanceToBase = Phaser.Math.Distance.Between(
+		// Initialize cumulative avoidance vector
+		let avoidanceX = 0;
+		let avoidanceY = 0;
+	
+		// Iterate over all trunks
+		this.trunkGroup.children.iterate((trunk) => {
+			const distanceToTrunk = Phaser.Math.Distance.Between(
+				this.tank2.x, this.tank2.y,
+				trunk.x, trunk.y
+			);
+	
+			if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) { // Avoid division by zero
+				// Calculate vector pointing away from the trunk, inversely proportional to the distance squared
+				const dx = this.tank2.x - trunk.x;
+				const dy = this.tank2.y - trunk.y;
+				const distanceSquared = distanceToTrunk * distanceToTrunk;
+	
+				// Accumulate the avoidance vector
+				avoidanceX += (dx / distanceSquared);
+				avoidanceY += (dy / distanceSquared);
+			}
+		});
+	
+		// Determine the vector towards the player
+		const targetVector = new Phaser.Math.Vector2(
+			this.tank1.x - this.tank2.x,
+			this.tank1.y - this.tank2.y
+		).normalize();
+	
+		// Apply avoidance if necessary
+		let movementVector = targetVector.clone(); // Start with the target vector
+	
+		if (avoidanceX !== 0 || avoidanceY !== 0) {
+			// Normalize the avoidance vector
+			const avoidanceVector = new Phaser.Math.Vector2(avoidanceX, avoidanceY).normalize();
+	
+			// Scale the avoidance vector
+			avoidanceVector.scale(avoidStrength);
+	
+			// Combine the target direction and avoidance vector
+			movementVector.add(avoidanceVector).normalize();
+		}
+	
+		// Adjust the tank's rotation to face the movement direction smoothly
+		const desiredAngle = movementVector.angle();
+		let currentRotation = this.tank2.rotation;
+	
+		// Custom function to wrap angles between -π and π
+		function wrapAngle(angle) {
+			return Math.atan2(Math.sin(angle), Math.cos(angle));
+		}
+	
+		// Calculate the shortest rotation direction
+		let rotationDiff = wrapAngle(desiredAngle - currentRotation);
+	
+		// Determine turn direction and rotate
+		const rotationSpeed = this.sys.game.config.tankTurnSpeed;
+		if (rotationDiff > 0.05) {
+			this.tank2.rotation += Math.min(rotationSpeed, rotationDiff);
+		} else if (rotationDiff < -0.05) {
+			this.tank2.rotation -= Math.min(rotationSpeed, -rotationDiff);
+		}
+	
+		// Optionally move the tank slightly to adjust position
+		// this.tank2.setVelocityX(...);
+		// this.tank2.setVelocityY(...);
+	
+		// Shooting logic
+		if (Math.abs(rotationDiff) < 0.1) { // If facing the player
+			if (this.canFireTank2) {
+				this.shootBullet(this.tank2, 'tank2');
+				this.canFireTank2 = false;
+				this.time.delayedCall(this.fireRate, () => {
+					this.canFireTank2 = true;
+				});
+			}
+		} else {
+			// Stop moving when adjusting aim
+			this.tank2.setVelocity(0);
+		}
+	}
+	
+
+	aiChase() {
+		const stopDistance = 0; // Continue moving towards the player
+		this.aiMoveTowardsTarget(this.tank1.x, this.tank1.y, stopDistance);
+	}
+
+	aiRotateTowards(targetAngle) {
+		// Normalize current rotation to be between -PI and PI
+		let currentRotation = this.tank2.rotation;
+		while (currentRotation < -Math.PI) currentRotation += 2 * Math.PI;
+		while (currentRotation > Math.PI) currentRotation -= 2 * Math.PI;
+
+		// Calculate shortest rotation direction
+		let diff = targetAngle - currentRotation;
+		while (diff < -Math.PI) diff += 2 * Math.PI;
+		while (diff > Math.PI) diff -= 2 * Math.PI;
+
+		// Rotate towards target
+		if (diff > 0.1) {
+			this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
+		} else if (diff < -0.1) {
+			this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
+		}
+	}
+
+	aiMoveTowardsTarget(targetX, targetY, stopDistance = 0) {
+		// Constants
+		const avoidDistance = 100; // Distance to start avoiding trunks
+		const avoidStrength = 200; // Strength of avoidance force
+	
+		// Calculate distance to target
+		const distanceToTarget = Phaser.Math.Distance.Between(
 			this.tank2.x, this.tank2.y,
-			this.base2.x, this.base2.y
+			targetX, targetY
 		);
 	
-		if (distanceToBase > stopDistance) {
+		if (distanceToTarget > stopDistance) {
 			// Initialize cumulative avoidance vector
 			let avoidanceX = 0;
 			let avoidanceY = 0;
@@ -973,10 +1081,10 @@ class BootScene extends Phaser.Scene {
 				}
 			});
 	
-			// Determine the tank's desired movement towards the base
+			// Determine the tank's desired movement towards the target
 			const targetVector = new Phaser.Math.Vector2(
-				this.base2.x - this.tank2.x,
-				this.base2.y - this.tank2.y
+				targetX - this.tank2.x,
+				targetY - this.tank2.y
 			).normalize();
 	
 			// Apply avoidance if necessary
@@ -1017,153 +1125,10 @@ class BootScene extends Phaser.Scene {
 			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
 			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
 		} else {
-			// Stop moving when close to the base
+			// Stop moving when close to the target
 			this.tank2.setVelocity(0);
 		}
 	}
-	
-
-	aiAttack() {
-		// Calculate angle to player
-		const angleToPlayer = Phaser.Math.Angle.Between(
-			this.tank2.x, this.tank2.y,
-			this.tank1.x, this.tank1.y
-		);
-
-		this.aiRotateTowards(angleToPlayer);
-
-		// If facing roughly towards player, shoot
-		if (Math.abs(this.tank2.rotation - angleToPlayer) < 0.1) {
-			if (this.canFireTank2) {
-				this.shootBullet(this.tank2, 'tank2');
-				this.canFireTank2 = false;
-				this.time.delayedCall(this.fireRate, () => {
-					this.canFireTank2 = true;
-				});
-			}
-		}
-	}
-
-	aiChase() {
-		// Calculate angle to player
-		const angleToPlayer = Phaser.Math.Angle.Between(
-			this.tank2.x, this.tank2.y,
-			this.tank1.x, this.tank1.y
-		);
-
-		this.aiRotateTowards(angleToPlayer);
-
-		// Move towards player if too far
-		const distance = Phaser.Math.Distance.Between(
-			this.tank2.x, this.tank2.y,
-			this.tank1.x, this.tank1.y
-		);
-
-		if (distance > this.aiMaxAttackDistance) {
-			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
-			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
-		} else if (distance < this.aiMinAttackDistance) {
-			// Back up if too close
-			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed);
-			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed);
-		}
-
-		// Avoid trees
-		this.aiAvoidTrunks();
-	}
-
-	aiRotateTowards(targetAngle) {
-		// Normalize current rotation to be between -PI and PI
-		let currentRotation = this.tank2.rotation;
-		while (currentRotation < -Math.PI) currentRotation += 2 * Math.PI;
-		while (currentRotation > Math.PI) currentRotation -= 2 * Math.PI;
-
-		// Calculate shortest rotation direction
-		let diff = targetAngle - currentRotation;
-		while (diff < -Math.PI) diff += 2 * Math.PI;
-		while (diff > Math.PI) diff -= 2 * Math.PI;
-
-		// Rotate towards target
-		if (diff > 0.1) {
-			this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
-		} else if (diff < -0.1) {
-			this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
-		}
-	}
-
-	aiAvoidTrunks() {
-		// Initialize cumulative avoidance vector
-		let avoidanceX = 0;
-		let avoidanceY = 0;
-	
-		// Constants
-		const avoidDistance = 100; // Distance to start avoiding trunks
-		const avoidStrength = 200; // Strength of avoidance force
-	
-		// Iterate over all trunks
-		this.trunkGroup.children.iterate((trunk) => {
-			const distanceToTrunk = Phaser.Math.Distance.Between(
-				this.tank2.x, this.tank2.y,
-				trunk.x, trunk.y
-			);
-	
-			if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) { // Avoid division by zero
-				// Calculate vector pointing away from the trunk, inversely proportional to the distance squared
-				const dx = this.tank2.x - trunk.x;
-				const dy = this.tank2.y - trunk.y;
-				const distanceSquared = distanceToTrunk * distanceToTrunk;
-	
-				// Accumulate the avoidance vector
-				avoidanceX += (dx / distanceSquared);
-				avoidanceY += (dy / distanceSquared);
-			}
-		});
-	
-		// Determine the tank's desired movement towards the player
-		const targetVector = new Phaser.Math.Vector2(
-			this.tank1.x - this.tank2.x,
-			this.tank1.y - this.tank2.y
-		).normalize();
-	
-		// Apply avoidance if necessary
-		let movementVector = targetVector.clone(); // Start with the target vector
-	
-		if (avoidanceX !== 0 || avoidanceY !== 0) {
-			// Normalize the avoidance vector
-			const avoidanceVector = new Phaser.Math.Vector2(avoidanceX, avoidanceY).normalize();
-	
-			// Scale the avoidance vector
-			avoidanceVector.scale(avoidStrength);
-	
-			// Combine the target direction and avoidance vector
-			movementVector.add(avoidanceVector).normalize();
-		}
-	
-		// Adjust the tank's rotation to face the movement direction smoothly
-		const desiredAngle = movementVector.angle();
-		let currentRotation = this.tank2.rotation;
-	
-		// Custom function to wrap angles between -π and π
-		function wrapAngle(angle) {
-			return Math.atan2(Math.sin(angle), Math.cos(angle));
-		}
-	
-		// Calculate the shortest rotation direction
-		let rotationDiff = wrapAngle(desiredAngle - currentRotation);
-	
-		// Determine turn direction and rotate
-		const rotationSpeed = this.sys.game.config.tankTurnSpeed;
-		if (rotationDiff > 0.05) {
-			this.tank2.rotation += Math.min(rotationSpeed, rotationDiff);
-		} else if (rotationDiff < -0.05) {
-			this.tank2.rotation -= Math.min(rotationSpeed, -rotationDiff);
-		}
-	
-		// Move the tank forward in the direction it's facing
-		this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
-		this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
-	}
-	
 
 }
 
