@@ -71,6 +71,8 @@ function startGame() {
 	game.config.treeTrunkXoffset = 86; // Set tree trunk x offset
 	game.config.treeTrunkYoffset = 86; // Set tree trunk y offset
 	game.config.treeDensity = 3; // Set tree density
+	game.config.homeBaseRegenRate = 0.125;    // Set home base regeneration rate
+	game.config.enemyBaseRegenRate = game.config.homeBaseRegenRate/2;  // Set enemy base regeneration rate
 
 	game.events.on('ready', () => {
 		loadingScreen.style.display = 'none';
@@ -335,7 +337,7 @@ class BootScene extends Phaser.Scene {
 					trunk.setTint(0x00ff00); // Tint the sprite green
 					trunk.setDisplaySize(trunkWidth, trunkWidth); // Set the size of the trunk collider
 					trunk.setDepth(4); // Set the depth of the trunk to be above the tree
-					trunk.setVisible(false); // Make the trunk invisible
+					trunk.setVisible(false); // Make the trunk invisible initially
 
 					// Increment the total trees count and update the display
 					this.totalTreesCount++;
@@ -679,60 +681,56 @@ class BootScene extends Phaser.Scene {
 	}
 
 	regenerateHealth() {
-		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
+		const baseWidth = this.sys.game.config.baseWidth;
 
 		// Tank1 in own base
 		if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank1.getBounds(), this.base1.getBounds())) {
-				if (this.tank1Health < 100) {
-						// Check if tank1 is fully within the base
-						if (this.tank1.getBounds().x >= this.base1.x - baseWidth / 2 &&
-								this.tank1.getBounds().x + this.tank1.getBounds().width <= this.base1.x + baseWidth / 2 &&
-								this.tank1.getBounds().y >= this.base1.y - baseWidth / 2 &&
-								this.tank1.getBounds().y + this.tank1.getBounds().height <= this.base1.y + baseWidth / 2) {
-								this.tank1Health += 0.5; // Faster regeneration
-								tank1HealthEl.innerText = `${Math.floor(this.tank1Health)}%`;
-						}
+			if (this.tank1Health < 100) {
+				if (this.tank1.getBounds().x >= this.base1.x - baseWidth / 2 &&
+					this.tank1.getBounds().x + this.tank1.getBounds().width <= this.base1.x + baseWidth / 2 &&
+					this.tank1.getBounds().y >= this.base1.y - baseWidth / 2 &&
+					this.tank1.getBounds().y + this.tank1.getBounds().height <= this.base1.y + baseWidth / 2) {
+					this.tank1Health += this.sys.game.config.homeBaseRegenRate;
+					tank1HealthEl.innerText = `${Math.floor(this.tank1Health)}%`;
 				}
+			}
 		}
 		// Tank1 in enemy base
 		else if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank1.getBounds(), this.base2.getBounds())) {
-				if (this.tank1Health < 100) {
-						// Check if tank1 is fully within the enemy base
-						if (this.tank1.getBounds().x >= this.base2.x - baseWidth / 2 &&
-								this.tank1.getBounds().x + this.tank1.getBounds().width <= this.base2.x + baseWidth / 2 &&
-								this.tank1.getBounds().y >= this.base2.y - baseWidth / 2 &&
-								this.tank1.getBounds().y + this.tank1.getBounds().height <= this.base2.y + baseWidth / 2) {
-								this.tank1Health += 0.125; // Slower regeneration
-								tank1HealthEl.innerText = `${Math.floor(this.tank1Health)}%`;
-						}
+			if (this.tank1Health < 100) {
+				if (this.tank1.getBounds().x >= this.base2.x - baseWidth / 2 &&
+					this.tank1.getBounds().x + this.tank1.getBounds().width <= this.base2.x + baseWidth / 2 &&
+					this.tank1.getBounds().y >= this.base2.y - baseWidth / 2 &&
+					this.tank1.getBounds().y + this.tank1.getBounds().height <= this.base2.y + baseWidth / 2) {
+					this.tank1Health += this.sys.game.config.enemyBaseRegenRate;
+					tank1HealthEl.innerText = `${Math.floor(this.tank1Health)}%`;
 				}
+			}
 		}
 
 		// Tank2 in own base
 		if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank2.getBounds(), this.base2.getBounds())) {
-				if (this.tank2Health < 100) {
-						// Check if tank2 is fully within the base
-						if (this.tank2.getBounds().x >= this.base2.x - baseWidth / 2 &&
-								this.tank2.getBounds().x + this.tank2.getBounds().width <= this.base2.x + baseWidth / 2 &&
-								this.tank2.getBounds().y >= this.base2.y - baseWidth / 2 &&
-								this.tank2.getBounds().y + this.tank2.getBounds().height <= this.base2.y + baseWidth / 2) {
-								this.tank2Health += 0.5; // Faster regeneration
-								tank2HealthEl.innerText = `${Math.floor(this.tank2Health)}%`;
-						}
+			if (this.tank2Health < 100) {
+				if (this.tank2.getBounds().x >= this.base2.x - baseWidth / 2 &&
+					this.tank2.getBounds().x + this.tank2.getBounds().width <= this.base2.x + baseWidth / 2 &&
+					this.tank2.getBounds().y >= this.base2.y - baseWidth / 2 &&
+					this.tank2.getBounds().y + this.tank2.getBounds().height <= this.base2.y + baseWidth / 2) {
+					this.tank2Health += this.sys.game.config.homeBaseRegenRate;
+					tank2HealthEl.innerText = `${Math.floor(this.tank2Health)}%`;
 				}
+			}
 		}
 		// Tank2 in enemy base
 		else if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank2.getBounds(), this.base1.getBounds())) {
-				if (this.tank2Health < 100) {
-						// Check if tank2 is fully within the enemy base
-						if (this.tank2.getBounds().x >= this.base1.x - baseWidth / 2 &&
-								this.tank2.getBounds().x + this.tank2.getBounds().width <= this.base1.x + baseWidth / 2 &&
-								this.tank2.getBounds().y >= this.base1.y - baseWidth / 2 &&
-								this.tank2.getBounds().y + this.tank2.getBounds().height <= this.base1.y + baseWidth / 2) {
-								this.tank2Health += 0.125; // Slower regeneration
-								tank2HealthEl.innerText = `${Math.floor(this.tank2Health)}%`;
-						}
+			if (this.tank2Health < 100) {
+				if (this.tank2.getBounds().x >= this.base1.x - baseWidth / 2 &&
+					this.tank2.getBounds().x + this.tank2.getBounds().width <= this.base1.x + baseWidth / 2 &&
+					this.tank2.getBounds().y >= this.base1.y - baseWidth / 2 &&
+					this.tank2.getBounds().y + this.tank2.getBounds().height <= this.base1.y + baseWidth / 2) {
+					this.tank2Health += this.sys.game.config.enemyBaseRegenRate;
+					tank2HealthEl.innerText = `${Math.floor(this.tank2Health)}%`;
 				}
+			}
 		}
 	}
 
