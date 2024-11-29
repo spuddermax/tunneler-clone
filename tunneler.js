@@ -883,15 +883,18 @@ class BootScene extends Phaser.Scene {
 	}
 
 	updateAI() {
+		// Skip AI updates if in two-player mode
+		if (isTwoPlayerMode) return;
+
 		// Skip if tank2 doesn't exist
 		if (!this.tank2) return;
-	
+
 		// Calculate distance to player
 		const distanceToPlayer = Phaser.Math.Distance.Between(
 			this.tank1.x, this.tank1.y,
 			this.tank2.x, this.tank2.y
 		);
-	
+
 		// Determine AI state
 		if (this.tank2Health <= this.aiRetreatHealth) {
 			this.aiState = 'retreat';
@@ -901,7 +904,7 @@ class BootScene extends Phaser.Scene {
 		} else {
 			this.aiState = 'chase';
 		}
-	
+
 		// Execute AI behavior based on state
 		switch (this.aiState) {
 			case 'retreat':
@@ -1197,3 +1200,10 @@ function shuffleArray(array) {
         [array[i], array[j]] = [array[j], array[i]]; // Swap elements
     }
 }
+
+let isTwoPlayerMode = false;
+
+document.getElementById('mode-toggle-btn').addEventListener('click', function() {
+    isTwoPlayerMode = !isTwoPlayerMode; // Toggle the mode
+    this.textContent = isTwoPlayerMode ? 'Two Player' : 'Single Player'; // Update button text
+});
