@@ -1,3 +1,9 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
 body {
 	margin: 0;
 	overflow: hidden;
@@ -15,9 +21,9 @@ body {
 	min-height: 300px;
 	margin-left: auto;
 	margin-right: auto;
-	background-image: url('images/TankTagAnimation.gif');
-    background-size: cover; /* Cover the entire screen */
-    background-position: center; /* Center the image */
+	background-image: url("images/TankTagAnimation.gif");
+	background-size: cover; /* Cover the entire screen */
+	background-position: center; /* Center the image */
 	padding: 20px; /* Add some padding */
 	border-radius: 10px; /* Optional: Rounded corners */
 }
@@ -148,15 +154,15 @@ body {
 }
 
 #volume-control {
-    position: absolute; /* Position it absolutely */
-    top: 10px; /* Distance from the top of the page */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Adjust to center the element */
-    z-index: 10; /* Ensure it appears above other elements */
-    background-color: #00000077; /* Optional: Add a background for better visibility */
-    padding: 0px; /* Optional: Add some padding */
-    border-radius: 5px; /* Optional: Rounded corners */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow for depth */
+	position: absolute; /* Position it absolutely */
+	top: 10px; /* Distance from the top of the page */
+	left: 50%; /* Center horizontally */
+	transform: translateX(-50%); /* Adjust to center the element */
+	z-index: 10; /* Ensure it appears above other elements */
+	background-color: #00000077; /* Optional: Add a background for better visibility */
+	padding: 0px; /* Optional: Add some padding */
+	border-radius: 5px; /* Optional: Rounded corners */
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Optional: Add a shadow for depth */
 }
 
 /* Responsive styles */
@@ -166,7 +172,7 @@ body {
 		margin-top: 50px; /* Adjust margin for smaller screens */
 		padding: 10px; /* Reduce padding */
 	}
-	
+
 	#welcome-screen h1 {
 		font-size: 24px; /* Adjust font size for smaller screens */
 	}
@@ -180,4 +186,38 @@ body {
 		padding: 10px; /* Adjust button padding */
 		width: 100%; /* Make buttons full width */
 	}
+}
+
+#pause-overlay {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.7);
+	align-items: center;
+	justify-content: center;
+	color: white;
+	font-size: 48px;
+	z-index: 1000;
+}
+
+#game-timer {
+	display: none;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+	color: white;
+	padding: 20px 40px;
+	border-radius: 10px;
+	font-size: 48px;
+	opacity: 1; /* Fully visible */
+	transition: opacity 1s ease-out; /* Transition for fade-out */
+}
+
+#game-timer.hidden {
+	opacity: 0; /* Invisible state for fade-out */
 }

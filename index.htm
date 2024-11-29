@@ -1,80 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Tank Tag</title>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="tunneler.css">
-  <link rel="icon" type="image/png" href="/images/tank_red.png">
-</head>
-<body>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Tank Tag</title>
+		<script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.js"></script>
+		<link
+			rel="stylesheet"
+			href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+		/>
+		<link rel="stylesheet" href="tunneler.css" />
+		<link rel="icon" type="image/png" href="/images/tank_red.png" />
+	</head>
+	<body>
+		<div id="entry-screen">
+			<button id="roll-btn">Let's Roll</button>
+		</div>
 
-  <div id="entry-screen">
-    <button id="roll-btn">Let's Roll</button>
-  </div>
-
-  <div id="welcome-screen">
-    <!-- <h1>Welcome to Tank Tag!</h1>
+		<div id="welcome-screen">
+			<!-- <h1>Welcome to Tank Tag!</h1>
     <p>Tank Tag is a fast-paced, action-packed game where two tanks battle it out in a world filled with obstacles and challenges. Use your strategic skills and quick reflexes to outmaneuver your opponent and emerge victorious.</p> -->
-    <button id="start-btn">Start</button>
-    <button id="instructions-btn">Instructions</button>
-    <button id="mode-toggle-btn">Single Player</button>
-  </div>
+			<button id="start-btn">Start</button>
+			<button id="instructions-btn">Instructions</button>
+			<button id="mode-toggle-btn">Single Player</button>
+		</div>
 
-  <div id="instructions-modal">
-    <div id="modal-content">
-      <p>
-        **Instructions:**<br>
-        - **Show/Hide Debug Info:** Press 'I' to toggle visibility.<br>
-        - **Tank 1 (Grey):** Move with WASD, shoot with V.<br>
-        - **Tank 2 (Red):** Move with arrow keys, shoot with 'Enter' key.<br>
-        - **Objective:** Destroy the enemy tank 5 times to win.<br>
-        - **Health Restoration:** Return to your base for rapid healing or to the enemy base for slower healing.
-      </p>
-      <button id="close-modal-btn">Close</button>
-    </div>
-  </div>
+		<div id="instructions-modal">
+			<div id="modal-content">
+				<p>
+					**Instructions:**<br />
+					- **Show/Hide Debug Info:** Press 'I' to toggle
+					visibility.<br />
+					- **Tank 1 (Grey):** Move with WASD, shoot with V.<br />
+					- **Tank 2 (Red):** Move with arrow keys, shoot with 'Enter'
+					key.<br />
+					- **Objective:** Destroy the enemy tank 5 times to win.<br />
+					- **Health Restoration:** Return to your base for rapid
+					healing or to the enemy base for slower healing.
+				</p>
+				<button id="close-modal-btn">Close</button>
+			</div>
+		</div>
 
-  <!-- Add a div for the game kill tally -->
-  <div id="game-tally">
-    <h2>Score</h2>
-    <p id="tank1-stats">
-      <img src="images/tank_grey.png" alt="Tank 1" class="tank-icon">
-      <span id="tank1-kills">0</span>
-    </p>
-    <p id="tank2-stats">
-      <img src="images/tank_red.png" alt="Tank 2" class="tank-icon">
-      <span id="tank2-kills">0</span></p>
-  </div>
+		<!-- Add a div for the game kill tally -->
+		<div id="game-tally">
+			<h2>Score</h2>
+			<p id="tank1-stats">
+				<img
+					src="images/tank_grey.png"
+					alt="Tank 1"
+					class="tank-icon"
+				/>
+				<span id="tank1-kills">0</span>
+			</p>
+			<p id="tank2-stats">
+				<img src="images/tank_red.png" alt="Tank 2" class="tank-icon" />
+				<span id="tank2-kills">0</span>
+			</p>
+		</div>
 
-  <div id="game-container"></div>
+		<div id="game-container"></div>
 
-  <div id="debug-stats">
-    <div>Tank 1 Health: <span id="tank1-health">100%</span> Position: <span id="tank1-position"></span></div>
-    <div>Tank 2 Health: <span id="tank2-health">100%</span> Position: <span id="tank2-position"></span></div>
-    <div>Tank 1 Health Bar Position: <span id="tank1-health-bar-position"></span></div>
-    <div>Tank 2 Health Bar Position: <span id="tank2-health-bar-position"></span></div>
-    <div>Total Bushes: <span id="total-bushes">0</span></div>
-    <div>Total Trees: <span id="total-trees">0</span></div>
-    <div>Base 1 Position: <span id="base1-position"></span></div>
-    <div>Base 2 Position: <span id="base2-position"></span></div>
-  </div>
+		<div id="debug-stats">
+			<div>
+				Tank 1 Health: <span id="tank1-health">100%</span> Position:
+				<span id="tank1-position"></span>
+			</div>
+			<div>
+				Tank 2 Health: <span id="tank2-health">100%</span> Position:
+				<span id="tank2-position"></span>
+			</div>
+			<div>
+				Tank 1 Health Bar Position:
+				<span id="tank1-health-bar-position"></span>
+			</div>
+			<div>
+				Tank 2 Health Bar Position:
+				<span id="tank2-health-bar-position"></span>
+			</div>
+			<div>Total Bushes: <span id="total-bushes">0</span></div>
+			<div>Total Trees: <span id="total-trees">0</span></div>
+			<div>Base 1 Position: <span id="base1-position"></span></div>
+			<div>Base 2 Position: <span id="base2-position"></span></div>
+		</div>
 
-  <!-- Add this just before the closing </body> tag -->
-  <div id="loading-screen">
-    <div class="loader"></div>
-    <p>Loading game...</p>
-  </div>
+		<!-- Add this just before the closing </body> tag -->
+		<div id="loading-screen">
+			<div class="loader"></div>
+			<p>Loading game...</p>
+		</div>
 
-  <div id="volume-control">
-    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
-    <button id="play-pause-btn">
-        <i class="fas fa-play"></i>
-    </button>
-  </div>
+		<div id="volume-control">
+			<input
+				type="range"
+				id="volume-slider"
+				min="0"
+				max="1"
+				step="0.01"
+				value="1"
+			/>
+			<button id="play-pause-btn">
+				<i class="fas fa-play"></i>
+			</button>
+		</div>
 
-  <script src="tunneler.js"></script> <!-- Included JavaScript file -->
+		<!-- Add the timer div, initially hidden -->
+		<div id="game-timer">
+			<h2 id="countdown">3</h2>
+		</div>
 
-</body>
+		<!-- Add the PAUSED div, initially hidden -->
+		<div id="pause-overlay">PAUSED</div>
+
+		<script src="tunneler.js"></script>
+		<!-- Included JavaScript file -->
+	</body>
 </html>

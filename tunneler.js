@@ -1,36 +1,45 @@
-const startBtn = document.getElementById('start-btn');
-const instructionsBtn = document.getElementById('instructions-btn');
-const closeModalBtn = document.getElementById('close-modal-btn');
-const welcomeScreen = document.getElementById('welcome-screen');
-const instructionsModal = document.getElementById('instructions-modal');
-const gameContainer = document.getElementById('game-container');
-const debugStats = document.getElementById('debug-stats');
-const tank1HealthEl = document.getElementById('tank1-health');
-const tank2HealthEl = document.getElementById('tank2-health');
-const tank1KillsEl = document.getElementById('tank1-kills');
-const tank2KillsEl = document.getElementById('tank2-kills');
-const gameTally = document.getElementById('game-tally');
-const loadingScreen = document.getElementById('loading-screen');
-const entryScreen = document.getElementById('entry-screen');
-const volumeSlider = document.getElementById('volume-slider');
-const playPauseBtn = document.getElementById('play-pause-btn');
+const startBtn = document.getElementById("start-btn");
+const instructionsBtn = document.getElementById("instructions-btn");
+const closeModalBtn = document.getElementById("close-modal-btn");
+const welcomeScreen = document.getElementById("welcome-screen");
+const instructionsModal = document.getElementById("instructions-modal");
+const gameContainer = document.getElementById("game-container");
+const timerContainer = document.getElementById("game-timer");
+const debugStats = document.getElementById("debug-stats");
+const tank1HealthEl = document.getElementById("tank1-health");
+const tank2HealthEl = document.getElementById("tank2-health");
+const tank1KillsEl = document.getElementById("tank1-kills");
+const tank2KillsEl = document.getElementById("tank2-kills");
+const gameTally = document.getElementById("game-tally");
+const loadingScreen = document.getElementById("loading-screen");
+const entryScreen = document.getElementById("entry-screen");
+const volumeSlider = document.getElementById("volume-slider");
+const playPauseBtn = document.getElementById("play-pause-btn");
+const pauseOverlay = document.getElementById("pause-overlay");
 
 let musicPlaylist = [
-    'sfx/music/GalacticWhimsyExtv2.2.mp3',
-    'sfx/music/BattlefieldJoyExtv2.1.mp3'
+	"sfx/music/GalacticWhimsyExtv2.2.mp3",
+	"sfx/music/BattlefieldJoyExtv2.1.mp3",
 ];
 shuffleArray(musicPlaylist);
 
+let isTwoPlayerMode = false;
+
+document
+	.getElementById("mode-toggle-btn")
+	.addEventListener("click", function () {
+		isTwoPlayerMode = !isTwoPlayerMode; // Toggle the mode
+		this.textContent = isTwoPlayerMode ? "Two Player" : "Single Player"; // Update button text
+	});
 let currentTrackIndex = 0;
 const backgroundMusic = new Audio(musicPlaylist[currentTrackIndex]);
 
 // Set up playlist functionality
-backgroundMusic.addEventListener('ended', () => {
-    currentTrackIndex = (currentTrackIndex + 1) % musicPlaylist.length;
-    backgroundMusic.src = musicPlaylist[currentTrackIndex];
-    backgroundMusic.play();
+backgroundMusic.addEventListener("ended", () => {
+	currentTrackIndex = (currentTrackIndex + 1) % musicPlaylist.length;
+	backgroundMusic.src = musicPlaylist[currentTrackIndex];
+	backgroundMusic.play();
 });
-
 
 // Set the background music to loop through the playlist
 
@@ -40,53 +49,53 @@ backgroundMusic.loop = true;
 backgroundMusic.volume = volumeSlider.value;
 
 // Event listener for volume slider
-volumeSlider.addEventListener('input', (event) => {
-    const volume = event.target.value; // Get the current value of the slider
-    backgroundMusic.volume = volume; // Set the background music volume
+volumeSlider.addEventListener("input", (event) => {
+	const volume = event.target.value; // Get the current value of the slider
+	backgroundMusic.volume = volume; // Set the background music volume
 });
 
 // Event listener for play/pause button
 playPauseBtn.onclick = () => {
-    if (backgroundMusic.paused) {
-        backgroundMusic.play(); // Play the music
-        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; // Change to pause icon
-    } else {
-        backgroundMusic.pause(); // Pause the music
-        playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; // Change to play icon
-    }
+	if (backgroundMusic.paused) {
+		backgroundMusic.play(); // Play the music
+		playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; // Change to pause icon
+	} else {
+		backgroundMusic.pause(); // Pause the music
+		playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; // Change to play icon
+	}
 };
 
 // Event listener for when the music starts
-backgroundMusic.addEventListener('play', () => {
-    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; // Change to pause icon when music starts
+backgroundMusic.addEventListener("play", () => {
+	playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; // Change to pause icon when music starts
 });
 
 // Event listener for when the music ends
-backgroundMusic.addEventListener('ended', () => {
-    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; // Change to play icon when music ends
+backgroundMusic.addEventListener("ended", () => {
+	playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; // Change to play icon when music ends
 });
 
 startBtn.onclick = () => {
-	loadingScreen.style.display = 'flex';
-	welcomeScreen.style.display = 'none';
-	gameContainer.style.display = 'block';
-	gameTally.style.display = 'block';
+	loadingScreen.style.display = "flex";
+	welcomeScreen.style.display = "none";
+	gameContainer.style.display = "block";
+	gameTally.style.display = "block";
 	startGame();
-	fadeOutMusic();	
+	fadeOutMusic();
 };
 
 instructionsBtn.onclick = () => {
-	instructionsModal.style.display = 'block';
+	instructionsModal.style.display = "block";
 };
 
 closeModalBtn.onclick = () => {
-	instructionsModal.style.display = 'none';
+	instructionsModal.style.display = "none";
 };
 
-document.getElementById('roll-btn').addEventListener('click', () => {
-    entryScreen.style.display = 'none';
-    welcomeScreen.style.display = 'block';
-    backgroundMusic.play();
+document.getElementById("roll-btn").addEventListener("click", () => {
+	entryScreen.style.display = "none";
+	welcomeScreen.style.display = "block";
+	backgroundMusic.play();
 });
 
 // Fade out the music to 10% volume
@@ -100,7 +109,10 @@ function fadeOutMusic() {
 
 	const fadeOut = setInterval(() => {
 		currentStep++;
-		const volume = Math.max(targetVolume, backgroundMusic.volume - volumeStep); // Decrease volume
+		const volume = Math.max(
+			targetVolume,
+			backgroundMusic.volume - volumeStep
+		); // Decrease volume
 		backgroundMusic.volume = volume;
 		volumeSlider.value = volume; // Update slider value to match music volume
 
@@ -112,16 +124,41 @@ function fadeOutMusic() {
 	}, fadeInterval);
 }
 
+let game;
+
+// Add event listener for the Spacebar to toggle pause
+document.addEventListener("keydown", function (event) {
+	if (event.code === "Space") {
+		event.preventDefault(); // Prevent default browser behavior
+		togglePause();
+	}
+});
+
+function togglePause() {
+	if (!game) return;
+	if (game.scene.isPaused("BootScene")) {
+		game.scene.resume("BootScene"); // Resume the game scene
+		pauseOverlay.style.display = "none"; // Hide the PAUSED overlay
+	} else {
+		game.scene.pause("BootScene"); // Pause the game scene
+		pauseOverlay.style.display = "flex"; // Show the PAUSED overlay
+	}
+}
+
 function startGame() {
-	gameContainer.style.display = 'block';
+	loadingScreen.style.display = "flex";
+	welcomeScreen.style.display = "none";
+	gameContainer.style.display = "block";
+	gameTally.style.display = "block";
+	timerContainer.style.display = "block";
 
 	const config = {
 		type: Phaser.AUTO,
-		parent: 'game-container',
+		parent: "game-container",
 		width: 3840,
 		height: 1080,
 		physics: {
-			default: 'arcade',
+			default: "arcade",
 			arcade: {
 				debug: false,
 			},
@@ -129,8 +166,8 @@ function startGame() {
 		scene: [BootScene],
 	};
 
-	// Create the game instance
-	const game = new Phaser.Game(config);
+	// Assign the game instance to the global 'game' variable
+	game = new Phaser.Game(config);
 
 	game.config.borderSize = 10; // Set border size
 	game.config.borderColor = 0x336699; // Set border color to blue
@@ -155,19 +192,23 @@ function startGame() {
 	game.config.treeTrunkXoffset = 86; // Set tree trunk x offset
 	game.config.treeTrunkYoffset = 86; // Set tree trunk y offset
 	game.config.treeDensity = 3; // Set tree density
-	game.config.homeBaseRegenRate = 0.125;    // Set home base regeneration rate
-	game.config.enemyBaseRegenRate = game.config.homeBaseRegenRate/2;  // Set enemy base regeneration rate
+	game.config.homeBaseRegenRate = 0.125; // Set home base regeneration rate
+	game.config.enemyBaseRegenRate = game.config.homeBaseRegenRate / 2; // Set enemy base regeneration rate
 
-	game.events.on('ready', () => {
-		loadingScreen.style.display = 'none';
-		gameContainer.style.display = 'block';
-		gameTally.style.display = 'block';
+	game.events.on("ready", () => {
+		loadingScreen.style.display = "none";
+		gameContainer.style.display = "block";
+		gameTally.style.display = "block";
+		timerContainer.style.display = "block";
 	});
 }
 
+let gameReady = false; // Flag to indicate if the game is ready for tank movement
+const COUNTDOWN_DURATION = 3; // Countdown duration in seconds
+
 class BootScene extends Phaser.Scene {
 	constructor() {
-		super({ key: 'BootScene' });
+		super({ key: "BootScene" });
 		this.canFireTank1 = true; // Flag for tank1 firing
 		this.canFireTank2 = true; // Flag for tank2 firing
 		this.fireRate = 350; // Fire rate in milliseconds
@@ -180,7 +221,7 @@ class BootScene extends Phaser.Scene {
 		this.healthBar2 = null; // Health bar for tank2
 		this.aiUpdateInterval = 10; // How often to update AI decisions (ms)
 		this.aiLastUpdate = 0;
-		this.aiState = 'chase'; // States: chase, retreat, attack
+		this.aiState = "chase"; // States: chase, retreat, attack
 		this.aiMinAttackDistance = 300; // Minimum distance to start attacking
 		this.aiMaxAttackDistance = 500; // Maximum distance to chase before shooting
 		this.aiRetreatHealth = 30; // Health threshold to retreat
@@ -188,32 +229,32 @@ class BootScene extends Phaser.Scene {
 
 	preload() {
 		// Load assets here
-		this.load.image('bush1', 'images/bush1.png');
-		this.load.image('bush2', 'images/bush2.png');
-		this.load.image('bush3', 'images/bush3.png');
-		this.load.image('bush4', 'images/bush4.png');
-		this.load.image('tank1', 'images/tank_grey.png');
-		this.load.image('tank2', 'images/tank_red.png');
-		this.load.image('bullet', 'images/bullet.png');
-		this.load.image('trunk', 'images/trunk.png');
-		this.load.image('base', 'images/base.png');
-		this.load.image('explosion', 'images/explosion2.gif');
-		this.load.image('world_floor_1', 'images/world_floor_1.png');
-		this.load.image('world_floor_2', 'images/world_floor_2.png');
-		this.load.image('tree1', 'images/tree_1.png');
-		this.load.image('tree2', 'images/tree_2.png');
-		this.load.image('tree3', 'images/tree_3.png');
-		this.load.image('tree4', 'images/tree_4.png');
-		this.load.image('tree5', 'images/tree_5.png');
-		this.load.image('tree6', 'images/tree_6.png');
-		this.load.image('tree7', 'images/tree_7.png');
-		
+		this.load.image("bush1", "images/bush1.png");
+		this.load.image("bush2", "images/bush2.png");
+		this.load.image("bush3", "images/bush3.png");
+		this.load.image("bush4", "images/bush4.png");
+		this.load.image("tank1", "images/tank_grey.png");
+		this.load.image("tank2", "images/tank_red.png");
+		this.load.image("bullet", "images/bullet.png");
+		this.load.image("trunk", "images/trunk.png");
+		this.load.image("base", "images/base.png");
+		this.load.image("explosion", "images/explosion2.gif");
+		this.load.image("world_floor_1", "images/world_floor_1.png");
+		this.load.image("world_floor_2", "images/world_floor_2.png");
+		this.load.image("tree1", "images/tree_1.png");
+		this.load.image("tree2", "images/tree_2.png");
+		this.load.image("tree3", "images/tree_3.png");
+		this.load.image("tree4", "images/tree_4.png");
+		this.load.image("tree5", "images/tree_5.png");
+		this.load.image("tree6", "images/tree_6.png");
+		this.load.image("tree7", "images/tree_7.png");
+
 		// Load sounds
-		this.load.audio('fireSound', ['sfx/pew.mp3']);
-		this.load.audio('tankHit', ['sfx/impact.mp3']);
-		this.load.audio('bushHit', ['sfx/impact_light.mp3']);
-		this.load.audio('vroom', ['sfx/vroom.mp3']);
-		this.load.audio('vroom2', ['sfx/vroom_lower.mp3']);
+		this.load.audio("fireSound", ["sfx/pew.mp3"]);
+		this.load.audio("tankHit", ["sfx/impact.mp3"]);
+		this.load.audio("bushHit", ["sfx/impact_light.mp3"]);
+		this.load.audio("vroom", ["sfx/vroom.mp3"]);
+		this.load.audio("vroom2", ["sfx/vroom_lower.mp3"]);
 	}
 
 	create() {
@@ -221,16 +262,47 @@ class BootScene extends Phaser.Scene {
 		const worldWidth = this.game.config.width;
 		const worldHeight = this.game.config.height;
 
-		this.fireSound = this.sound.add('fireSound', { loop: false, volume: 0.5 });
-		this.tankHit = this.sound.add('tankHit', { loop: false, volume: 0.5 });
-		this.bushHit = this.sound.add('bushHit', { loop: false, volume: 0.5 });
-		this.vroom = this.sound.add('vroom', { loop: true, volume: 0.75 });
-		this.vroom2 = this.sound.add('vroom2', { loop: true, volume: 0.75 });
+		this.fireSound = this.sound.add("fireSound", {
+			loop: false,
+			volume: 0.5,
+		});
+		this.tankHit = this.sound.add("tankHit", { loop: false, volume: 0.5 });
+		this.bushHit = this.sound.add("bushHit", { loop: false, volume: 0.5 });
+		this.vroom = this.sound.add("vroom", { loop: true, volume: 0.75 });
+		this.vroom2 = this.sound.add("vroom2", { loop: true, volume: 0.75 });
 		// Add a border to the game
-		const borderTop = this.add.rectangle(worldWidth/2, this.game.config.borderSize / 2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
-		const borderBottom = this.add.rectangle(worldWidth/2, worldHeight - this.game.config.borderSize/2, worldWidth, this.game.config.borderSize, this.game.config.borderColor, 1);
-		const borderLeft = this.add.rectangle(this.game.config.borderSize/2, worldHeight/2, this.game.config.borderSize, worldHeight, this.game.config.borderColor, 1);
-		const borderRight = this.add.rectangle(worldWidth - this.game.config.borderSize/2, worldHeight/2, this.game.config.borderSize, worldHeight, this.game.config.borderColor, 1);
+		const borderTop = this.add.rectangle(
+			worldWidth / 2,
+			this.game.config.borderSize / 2,
+			worldWidth,
+			this.game.config.borderSize,
+			this.game.config.borderColor,
+			1
+		);
+		const borderBottom = this.add.rectangle(
+			worldWidth / 2,
+			worldHeight - this.game.config.borderSize / 2,
+			worldWidth,
+			this.game.config.borderSize,
+			this.game.config.borderColor,
+			1
+		);
+		const borderLeft = this.add.rectangle(
+			this.game.config.borderSize / 2,
+			worldHeight / 2,
+			this.game.config.borderSize,
+			worldHeight,
+			this.game.config.borderColor,
+			1
+		);
+		const borderRight = this.add.rectangle(
+			worldWidth - this.game.config.borderSize / 2,
+			worldHeight / 2,
+			this.game.config.borderSize,
+			worldHeight,
+			this.game.config.borderColor,
+			1
+		);
 
 		borderTop.setDepth(100);
 		borderBottom.setDepth(100);
@@ -239,7 +311,13 @@ class BootScene extends Phaser.Scene {
 
 		// Pick a random tiled background
 		const tiledBackground = Phaser.Math.Between(1, 2);
-		this.add.tileSprite(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, `world_floor_${tiledBackground}`); // Center the tiled background
+		this.add.tileSprite(
+			worldWidth / 2,
+			worldHeight / 2,
+			worldWidth,
+			worldHeight,
+			`world_floor_${tiledBackground}`
+		); // Center the tiled background
 
 		// Create bases first
 		this.createBases();
@@ -254,13 +332,16 @@ class BootScene extends Phaser.Scene {
 		this.createTanks();
 
 		// Set up controls
-		this.tank1Keys = this.input.keyboard.addKeys('W,A,S,D,V');
-		this.tank2Keys = this.input.keyboard.addKeys('UP,DOWN,LEFT,RIGHT,ENTER');
-		this.toggleKeys = this.input.keyboard.addKeys('I');
+		this.tank1Keys = this.input.keyboard.addKeys("W,A,S,D,V");
+		this.tank2Keys = this.input.keyboard.addKeys(
+			"UP,DOWN,LEFT,RIGHT,ENTER"
+		);
+		this.toggleKeys = this.input.keyboard.addKeys("I");
 
 		// Toggle debug-stats
-		this.toggleKeys.I.on('down', () => {
-			debugStats.style.display = debugStats.style.display === 'block' ? 'none' : 'block';
+		this.toggleKeys.I.on("down", () => {
+			debugStats.style.display =
+				debugStats.style.display === "block" ? "none" : "block";
 			this.toggleTrunkVisibility(); // Toggle trunk visibility based on debug state
 		});
 
@@ -272,46 +353,123 @@ class BootScene extends Phaser.Scene {
 
 		console.log(this.cameras);
 		// Create cameras for each tank's viewport based on the browser's viewport size
-		this.camera1 = this.cameras.add(0, 0, window.innerWidth / 2, window.innerHeight); // Left viewport
-		this.camera2 = this.cameras.add(window.innerWidth / 2, 0, window.innerWidth / 2, window.innerHeight); // Right viewport
+		if (!isTwoPlayerMode) {
+			// Single camera for two-player mode
+			this.camera1 = this.cameras.add(
+				0,
+				0,
+				window.innerWidth,
+				window.innerHeight
+			);
+			this.camera1.startFollow(this.tank1, true, 0.1, 0.1);
+			this.camera1.setBounds(
+				0,
+				0,
+				this.game.config.width,
+				this.game.config.height
+			);
+		} else {
+			// Two cameras for single-player mode
+			this.camera1 = this.cameras.add(
+				0,
+				0,
+				window.innerWidth / 2,
+				window.innerHeight
+			); // Left viewport
+			this.camera2 = this.cameras.add(
+				window.innerWidth / 2,
+				0,
+				window.innerWidth / 2,
+				window.innerHeight
+			); // Right viewport
 
-		// Set the bounds for the cameras
-		this.camera1.setBounds(0, 0, this.game.config.width, this.game.config.height);
-		this.camera2.setBounds(0, 0, this.game.config.width, this.game.config.height);
-		
-		// Follow the tanks with their respective cameras
-		this.camera1.startFollow(this.tank1, true, 0.1, 0.1); // Smooth follow for tank1
-		this.camera2.startFollow(this.tank2, true, 0.1, 0.1); // Smooth follow for tank2
+			this.camera1.setBounds(
+				0,
+				0,
+				this.game.config.width,
+				this.game.config.height
+			);
+			this.camera2.setBounds(
+				0,
+				0,
+				this.game.config.width,
+				this.game.config.height
+			);
 
-		// Ensure the cameras can scroll vertically
-		this.camera1.setScroll(0, 0); // Reset scroll position
-		this.camera2.setScroll(0, 0); // Reset scroll position
+			this.camera1.startFollow(this.tank1, true, 0.1, 0.1); // Smooth follow for tank1
+			this.camera2.startFollow(this.tank2, true, 0.1, 0.1); // Smooth follow for tank2
+		}
 
 		// Function to update camera sizes
 		const updateCameraSizes = () => {
-			this.camera1.setSize(window.innerWidth / 2, window.innerHeight);
-			this.camera2.setPosition(window.innerWidth / 2, 0);
-			this.camera2.setSize(window.innerWidth / 2, window.innerHeight);
+			if (!isTwoPlayerMode) {
+				// Adjust single camera to fill the entire canvas
+				this.camera1.setSize(window.innerWidth, window.innerHeight);
+				this.camera1.setPosition(0, 0);
+			} else {
+				// Adjust two cameras to split the canvas
+				this.camera1.setSize(window.innerWidth / 2, window.innerHeight);
+				this.camera2.setSize(window.innerWidth / 2, window.innerHeight);
+				this.camera2.setPosition(window.innerWidth / 2, 0);
+			}
 		};
 
 		// Initial camera setup
 		updateCameraSizes();
 
 		// Add resize event listener
-		window.addEventListener('resize', updateCameraSizes);
+		window.addEventListener("resize", updateCameraSizes);
 
 		// Create health bars
-		this.healthBar1 = new HealthBar(this, { x: this.tank1.x, y: this.tank1.y, health: this.tank1Health });
-		this.healthBar2 = new HealthBar(this, { x: this.tank2.x, y: this.tank2.y, health: this.tank2Health });
+		this.healthBar1 = new HealthBar(this, {
+			x: this.tank1.x,
+			y: this.tank1.y,
+			health: this.tank1Health,
+		});
+		this.healthBar2 = new HealthBar(this, {
+			x: this.tank2.x,
+			y: this.tank2.y,
+			health: this.tank2Health,
+		});
 
 		// Initial health bar setup
 		this.updateHealthBars();
 
-		this.game.events.emit('ready');
+		this.game.events.emit("ready");
+
+		// Start the countdown when the scene is ready
+		this.showCountdown();
+	}
+
+	showCountdown() {
+		const timerDiv = document.getElementById("game-timer");
+		const countdownEl = document.getElementById("countdown");
+		let countdown = COUNTDOWN_DURATION;
+
+		timerDiv.classList.remove("hidden"); // Ensure the timer is visible
+		countdownEl.textContent = countdown;
+
+		const countdownInterval = setInterval(() => {
+			countdown--;
+			if (countdown > 0) {
+				countdownEl.textContent = countdown;
+			} else {
+				clearInterval(countdownInterval);
+				gameReady = true; // Allow tank movement
+
+				// Start fade-out
+				timerDiv.classList.add("hidden");
+
+				// Hide the timer div after fade-out
+				setTimeout(() => {
+					timerDiv.style.display = "none";
+				}, 1000); // Duration matches the CSS transition
+			}
+		}, 1000);
 	}
 
 	toggleTrunkVisibility() {
-		const isDebugVisible = debugStats.style.display === 'block';
+		const isDebugVisible = debugStats.style.display === "block";
 		this.trunkGroup.children.iterate((trunk) => {
 			trunk.setVisible(isDebugVisible); // Set visibility based on debug state
 		});
@@ -325,7 +483,10 @@ class BootScene extends Phaser.Scene {
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
 		// Calculate the total number of bush blocks based on the game area
-		const totalBushBlocks = Math.floor((this.game.config.width * this.game.config.height) / (bushWidth * bushWidth));
+		const totalBushBlocks = Math.floor(
+			(this.game.config.width * this.game.config.height) /
+				(bushWidth * bushWidth)
+		);
 		//const reducedBushBlocks = Math.floor(totalBushBlocks * 0.95); // Reduce by 5%
 
 		const positions = new Set(); // To track occupied positions
@@ -338,21 +499,35 @@ class BootScene extends Phaser.Scene {
 		// Fill the world with bush blocks using the configured width
 		while (attempts < totalBushBlocks) {
 			attempts++; // Increment the attempt counter
-			if(attempts > maxAttempts) {
+			if (attempts > maxAttempts) {
 				break;
 			}
-			const x = Phaser.Math.Between(0, this.game.config.width - bushWidth);
-			const y = Phaser.Math.Between(0, this.game.config.height - bushWidth);
+			const x = Phaser.Math.Between(
+				0,
+				this.game.config.width - bushWidth
+			);
+			const y = Phaser.Math.Between(
+				0,
+				this.game.config.height - bushWidth
+			);
 
 			// Check if the bush block is within the boundaries of the bases
-			const isInBase1 = (x >= this.base1.x - baseWidth / 2 && x <= this.base1.x + baseWidth / 2) &&
-				(y >= this.base1.y - baseWidth / 2 && y <= this.base1.y + baseWidth / 2);
-			const isInBase2 = (x >= this.base2.x - baseWidth / 2 && x <= this.base2.x + baseWidth / 2) &&
-				(y >= this.base2.y - baseWidth / 2 && y <= this.base2.y + baseWidth / 2);
+			const isInBase1 =
+				x >= this.base1.x - baseWidth / 2 &&
+				x <= this.base1.x + baseWidth / 2 &&
+				y >= this.base1.y - baseWidth / 2 &&
+				y <= this.base1.y + baseWidth / 2;
+			const isInBase2 =
+				x >= this.base2.x - baseWidth / 2 &&
+				x <= this.base2.x + baseWidth / 2 &&
+				y >= this.base2.y - baseWidth / 2 &&
+				y <= this.base2.y + baseWidth / 2;
 
 			// Only create bush if it's not within the base boundaries and not overlapping
 			if (!isInBase1 && !isInBase2) {
-				const positionKey = `${Math.floor(x / bushWidth)},${Math.floor(y / bushWidth)}`; // Create a unique key for the position
+				const positionKey = `${Math.floor(x / bushWidth)},${Math.floor(
+					y / bushWidth
+				)}`; // Create a unique key for the position
 				if (!positions.has(positionKey)) {
 					positions.add(positionKey); // Add the position to the set
 					const bushImage = `bush${Phaser.Math.Between(1, 4)}`; // Randomly select bush image
@@ -362,7 +537,8 @@ class BootScene extends Phaser.Scene {
 
 					// Increment the total bushes count and update the display
 					this.totalBushesCount++;
-					document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
+					document.getElementById("total-bushes").innerText =
+						this.totalBushesCount; // Update the total bushes display
 				}
 			}
 		}
@@ -383,8 +559,12 @@ class BootScene extends Phaser.Scene {
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
 		// Calculate the total number of tree blocks based on the game area
-		const totalTreeBlocks = Math.floor((this.game.config.width * this.game.config.height) / (treeWidth * treeHeight)) * this.game.config.treeDensity;
-		console.log('totalTreeBlocks: ', totalTreeBlocks);
+		const totalTreeBlocks =
+			Math.floor(
+				(this.game.config.width * this.game.config.height) /
+					(treeWidth * treeHeight)
+			) * this.game.config.treeDensity;
+		console.log("totalTreeBlocks: ", totalTreeBlocks);
 
 		const positions = new Set(); // To track occupied positions
 		let attempts = 0; // Counter for attempts to add trees
@@ -395,21 +575,35 @@ class BootScene extends Phaser.Scene {
 		// Fill the world with tree blocks using the configured width
 		while (attempts < totalTreeBlocks) {
 			attempts++; // Increment the attempt counter
-			if(attempts > maxAttempts) {
+			if (attempts > maxAttempts) {
 				break;
 			}
-			const x = Phaser.Math.Between(0, this.game.config.width - treeWidth);
-			const y = Phaser.Math.Between(0, this.game.config.height - treeHeight);
+			const x = Phaser.Math.Between(
+				0,
+				this.game.config.width - treeWidth
+			);
+			const y = Phaser.Math.Between(
+				0,
+				this.game.config.height - treeHeight
+			);
 
 			// Check if the tree block is within the boundaries of the bases
-			const isInBase1 = (x >= this.base1.x - baseWidth / 2 && x <= this.base1.x + baseWidth / 2) &&
-				(y >= this.base1.y - baseWidth / 2 && y <= this.base1.y + baseWidth / 2);
-			const isInBase2 = (x >= this.base2.x - baseWidth / 2 && x <= this.base2.x + baseWidth / 2) &&
-				(y >= this.base2.y - baseWidth / 2 && y <= this.base2.y + baseWidth / 2);
+			const isInBase1 =
+				x >= this.base1.x - baseWidth / 2 &&
+				x <= this.base1.x + baseWidth / 2 &&
+				y >= this.base1.y - baseWidth / 2 &&
+				y <= this.base1.y + baseWidth / 2;
+			const isInBase2 =
+				x >= this.base2.x - baseWidth / 2 &&
+				x <= this.base2.x + baseWidth / 2 &&
+				y >= this.base2.y - baseWidth / 2 &&
+				y <= this.base2.y + baseWidth / 2;
 
 			// Only create tree if it's not within the base boundaries and not overlapping
 			if (!isInBase1 && !isInBase2) {
-				const positionKey = `${Math.floor(x / treeWidth)},${Math.floor(y / treeHeight)}`; // Create a unique key for the position
+				const positionKey = `${Math.floor(x / treeWidth)},${Math.floor(
+					y / treeHeight
+				)}`; // Create a unique key for the position
 				if (!positions.has(positionKey)) {
 					positions.add(positionKey); // Add the position to the set
 					const treeImage = `tree${Phaser.Math.Between(1, 7)}`; // Randomly select tree image
@@ -423,7 +617,11 @@ class BootScene extends Phaser.Scene {
 					const trunkY = y + 86; // 86 pixels from the bottom of the tree
 
 					// Create a green trunk block as a static collider
-					const trunk = this.trunkGroup.create(trunkX, trunkY, 'trunk'); // Use trunk sprite as base
+					const trunk = this.trunkGroup.create(
+						trunkX,
+						trunkY,
+						"trunk"
+					); // Use trunk sprite as base
 					trunk.setTint(0x00ff00); // Tint the sprite green
 					trunk.setDisplaySize(trunkWidth, trunkWidth); // Set the size of the trunk collider
 					trunk.setDepth(4); // Set the depth of the trunk to be above the tree
@@ -431,7 +629,8 @@ class BootScene extends Phaser.Scene {
 
 					// Increment the total trees count and update the display
 					this.totalTreesCount++;
-					document.getElementById('total-trees').innerText = this.totalTreesCount; // Update the total trees display
+					document.getElementById("total-trees").innerText =
+						this.totalTreesCount; // Update the total trees display
 				}
 			}
 		}
@@ -441,22 +640,49 @@ class BootScene extends Phaser.Scene {
 		const baseWidth = this.sys.game.config.baseWidth; // Access base width from config
 
 		// Set base 1 at a random position within the left 25% of the screen.
-		let randomX1 = Math.abs(Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth));
-		let randomY1 = Math.abs(Phaser.Math.Between(0, this.game.config.height - baseWidth));
+		let randomX1 = Math.abs(
+			Phaser.Math.Between(0, this.game.config.width / 4 - baseWidth)
+		);
+		let randomY1 = Math.abs(
+			Phaser.Math.Between(0, this.game.config.height - baseWidth)
+		);
 		randomX1 = randomX1 <= baseWidth / 2 ? baseWidth / 2 : randomX1;
 		randomY1 = randomY1 <= baseWidth / 2 ? baseWidth / 2 : randomY1;
-		randomY1 = randomY1 >= this.game.config.height - baseWidth / 2 ? this.game.config.height - baseWidth / 2 : randomY1;
-		this.base1 = this.physics.add.staticSprite(randomX1, randomY1, 'base');
-		document.getElementById('base1-position').innerText = `(${randomX1}, ${randomY1})`;
+		randomY1 =
+			randomY1 >= this.game.config.height - baseWidth / 2
+				? this.game.config.height - baseWidth / 2
+				: randomY1;
+		this.base1 = this.physics.add.staticSprite(randomX1, randomY1, "base");
+		document.getElementById(
+			"base1-position"
+		).innerText = `(${randomX1}, ${randomY1})`;
 
 		// Set base 2 at a random position within the right 25% of the screen
-		let randomX2 = Math.abs(Phaser.Math.Between(this.game.config.width * 3 / 4, this.game.config.width - baseWidth));
-		let randomY2 = Math.abs(Phaser.Math.Between(baseWidth / 2, this.game.config.height - baseWidth));
-		randomX2 = randomX2 >= this.game.config.width - baseWidth / 2 ? this.game.config.width - baseWidth / 2 : randomX2;
+		let randomX2 = Math.abs(
+			Phaser.Math.Between(
+				(this.game.config.width * 3) / 4,
+				this.game.config.width - baseWidth
+			)
+		);
+		let randomY2 = Math.abs(
+			Phaser.Math.Between(
+				baseWidth / 2,
+				this.game.config.height - baseWidth
+			)
+		);
+		randomX2 =
+			randomX2 >= this.game.config.width - baseWidth / 2
+				? this.game.config.width - baseWidth / 2
+				: randomX2;
 		randomY2 = randomY2 <= baseWidth / 2 ? baseWidth / 2 : randomY2;
-		randomY2 = randomY2 >= this.game.config.height - baseWidth ? this.game.config.height - baseWidth : randomY2;
-		this.base2 = this.physics.add.staticSprite(randomX2, randomY2, 'base');
-		document.getElementById('base2-position').innerText = `(${randomX2}, ${randomY2})`;
+		randomY2 =
+			randomY2 >= this.game.config.height - baseWidth
+				? this.game.config.height - baseWidth
+				: randomY2;
+		this.base2 = this.physics.add.staticSprite(randomX2, randomY2, "base");
+		document.getElementById(
+			"base2-position"
+		).innerText = `(${randomX2}, ${randomY2})`;
 
 		// Set the display size of the bases
 		this.base1.setDisplaySize(baseWidth, baseWidth); // Set the size of base1
@@ -467,7 +693,11 @@ class BootScene extends Phaser.Scene {
 		const tankWidth = this.sys.game.config.tankWidth; // Access tank width from config
 
 		// Create tank1 in the center of its base
-		this.tank1 = this.physics.add.sprite(this.base1.x, this.base1.y, 'tank1'); // Centered vertically
+		this.tank1 = this.physics.add.sprite(
+			this.base1.x,
+			this.base1.y,
+			"tank1"
+		); // Centered vertically
 		this.tank1.setCollideWorldBounds(true);
 		this.tank1.setDisplaySize(tankWidth, tankWidth); // Set the size of tank1
 		// Rotate tank1 left 90 degrees in radians
@@ -476,7 +706,11 @@ class BootScene extends Phaser.Scene {
 		console.log(this.tank1);
 
 		// Create tank2 in the center of its base
-		this.tank2 = this.physics.add.sprite(this.base2.x, this.base2.y, 'tank2'); // Centered vertically
+		this.tank2 = this.physics.add.sprite(
+			this.base2.x,
+			this.base2.y,
+			"tank2"
+		); // Centered vertically
 		this.tank2.setCollideWorldBounds(true);
 		this.tank2.setDisplaySize(tankWidth, tankWidth); // Set the size of tank2
 		// Rotate tank2 left 90 degrees in radians
@@ -484,8 +718,20 @@ class BootScene extends Phaser.Scene {
 		this.tank2.setDepth(1);
 		console.log(this.tank2);
 		// Add collision with bush
-		this.physics.add.collider(this.tank1, this.bushGroup, this.clearbush, null, this);
-		this.physics.add.collider(this.tank2, this.bushGroup, this.clearbush, null, this);
+		this.physics.add.collider(
+			this.tank1,
+			this.bushGroup,
+			this.clearbush,
+			null,
+			this
+		);
+		this.physics.add.collider(
+			this.tank2,
+			this.bushGroup,
+			this.clearbush,
+			null,
+			this
+		);
 
 		// Add collision between tanks and trunks
 		this.physics.add.collider(this.tank1, this.trunkGroup);
@@ -500,22 +746,24 @@ class BootScene extends Phaser.Scene {
 		this.bushHit.play();
 
 		this.totalBushesCount--;
-		document.getElementById('total-bushes').innerText = this.totalBushesCount; // Update the total bushes display
+		document.getElementById("total-bushes").innerText =
+			this.totalBushesCount; // Update the total bushes display
 
 		// Apply damage to the tank
 		if (tank === this.tank1) {
-				this.tank1Health -= this.sys.game.config.tankBushDamage; // Reduce tank1 health by a value set in config
-				tank1HealthEl.innerText = `${this.tank1Health}%`; // Update health display
-				this.checkTank1Health(); // Check if tank1 is destroyed
+			this.tank1Health -= this.sys.game.config.tankBushDamage; // Reduce tank1 health by a value set in config
+			tank1HealthEl.innerText = `${this.tank1Health}%`; // Update health display
+			this.checkTank1Health(); // Check if tank1 is destroyed
 		} else if (tank === this.tank2) {
-				this.tank2Health -= this.sys.game.config.tankBushDamage; // Reduce tank2 health by a value set in config
-				tank2HealthEl.innerText = `${this.tank2Health}%`; // Update health display
-				this.checkTank2Health(); // Check if tank2 is destroyed
+			this.tank2Health -= this.sys.game.config.tankBushDamage; // Reduce tank2 health by a value set in config
+			tank2HealthEl.innerText = `${this.tank2Health}%`; // Update health display
+			this.checkTank2Health(); // Check if tank2 is destroyed
 		}
-
 	}
 
 	update(time) {
+		if (!gameReady) return;
+
 		// Update tank1 movement
 		// W key should always move forward, S key should always move backward
 		// A key should always turn left, D key should always turn right
@@ -526,36 +774,61 @@ class BootScene extends Phaser.Scene {
 		let tank2Moving = false;
 
 		if (this.tank1Keys.W.isDown) {
-				// tank1 should always move forward
-				this.tank1.setVelocityX( Math.cos(this.tank1.rotation) * this.sys.game.config.tankForwardSpeed );
-				this.tank1.setVelocityY( Math.sin(this.tank1.rotation) * this.sys.game.config.tankForwardSpeed );
-				tank1Moving = true;
+			// tank1 should always move forward
+			this.tank1.setVelocityX(
+				Math.cos(this.tank1.rotation) *
+					this.sys.game.config.tankForwardSpeed
+			);
+			this.tank1.setVelocityY(
+				Math.sin(this.tank1.rotation) *
+					this.sys.game.config.tankForwardSpeed
+			);
+			tank1Moving = true;
 		} else if (this.tank1Keys.S.isDown) {
-				this.tank1.setVelocityX( Math.cos(this.tank1.rotation) * -this.sys.game.config.tankBackwardSpeed );
-				this.tank1.setVelocityY( Math.sin(this.tank1.rotation) * -this.sys.game.config.tankBackwardSpeed );
-				tank1Moving = true;
+			this.tank1.setVelocityX(
+				Math.cos(this.tank1.rotation) *
+					-this.sys.game.config.tankBackwardSpeed
+			);
+			this.tank1.setVelocityY(
+				Math.sin(this.tank1.rotation) *
+					-this.sys.game.config.tankBackwardSpeed
+			);
+			tank1Moving = true;
 		}
 		if (this.tank1Keys.A.isDown) {
-				this.tank1.rotation -= this.sys.game.config.tankTurnSpeed;
+			this.tank1.rotation -= this.sys.game.config.tankTurnSpeed;
 		} else if (this.tank1Keys.D.isDown) {
 			this.tank1.rotation += this.sys.game.config.tankTurnSpeed;
 		}
 
 		// Update tank1 position display
-		const tank1PositionEl = document.getElementById('tank1-position');
-		tank1PositionEl.innerText = `(${Math.round(this.tank1.x)}, ${Math.round(this.tank1.y)})`;
+		const tank1PositionEl = document.getElementById("tank1-position");
+		tank1PositionEl.innerText = `(${Math.round(this.tank1.x)}, ${Math.round(
+			this.tank1.y
+		)})`;
 
 		this.healthBar1.x = this.tank1.x;
 		this.healthBar1.y = this.tank1.y;
-		document.getElementById('tank1-health-bar-position').innerText = `(${Math.floor(this.healthBar1.x)}, ${Math.floor(this.healthBar1.y)})`;
+		document.getElementById(
+			"tank1-health-bar-position"
+		).innerText = `(${Math.floor(this.healthBar1.x)}, ${Math.floor(
+			this.healthBar1.y
+		)})`;
 
 		// If the tank is at the top edge of the screen, move its health bar to the bottom edge of the tank
-		if (this.tank1.y < (this.tank1.height / 2) + this.sys.game.config.healthBarOffset + this.sys.game.config.healthBarHeight ) {
-			this.healthBar1.offset = (this.sys.game.config.healthBarOffset * -1) - this.tank1.height - this.sys.game.config.healthBarHeight;
+		if (
+			this.tank1.y <
+			this.tank1.height / 2 +
+				this.sys.game.config.healthBarOffset +
+				this.sys.game.config.healthBarHeight
+		) {
+			this.healthBar1.offset =
+				this.sys.game.config.healthBarOffset * -1 -
+				this.tank1.height -
+				this.sys.game.config.healthBarHeight;
 		} else {
 			this.healthBar1.offset = this.sys.game.config.healthBarOffset;
 		}
-
 
 		// Tank2 movement
 		// up and down keys should always move forward and backward
@@ -565,17 +838,29 @@ class BootScene extends Phaser.Scene {
 		this.tank2.setVelocity(0);
 
 		if (this.tank2Keys.UP.isDown) {
-				// tank2 should always move forward
-				this.tank2.setVelocityX( Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed );
-				this.tank2.setVelocityY( Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed );
-				tank2Moving = true;
+			// tank2 should always move forward
+			this.tank2.setVelocityX(
+				Math.cos(this.tank2.rotation) *
+					this.sys.game.config.tankForwardSpeed
+			);
+			this.tank2.setVelocityY(
+				Math.sin(this.tank2.rotation) *
+					this.sys.game.config.tankForwardSpeed
+			);
+			tank2Moving = true;
 		} else if (this.tank2Keys.DOWN.isDown) {
-				this.tank2.setVelocityX( Math.cos(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed );
-				this.tank2.setVelocityY( Math.sin(this.tank2.rotation) * -this.sys.game.config.tankBackwardSpeed );
-				tank2Moving = true;
+			this.tank2.setVelocityX(
+				Math.cos(this.tank2.rotation) *
+					-this.sys.game.config.tankBackwardSpeed
+			);
+			this.tank2.setVelocityY(
+				Math.sin(this.tank2.rotation) *
+					-this.sys.game.config.tankBackwardSpeed
+			);
+			tank2Moving = true;
 		}
 		if (this.tank2Keys.LEFT.isDown) {
-				this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
+			this.tank2.rotation -= this.sys.game.config.tankTurnSpeed;
 		} else if (this.tank2Keys.RIGHT.isDown) {
 			this.tank2.rotation += this.sys.game.config.tankTurnSpeed;
 		}
@@ -592,36 +877,50 @@ class BootScene extends Phaser.Scene {
 		}
 
 		// Update tank2 position display
-		const tank2PositionEl = document.getElementById('tank2-position');
-		tank2PositionEl.innerText = `(${Math.round(this.tank2.x)}, ${Math.round(this.tank2.y)})`;
+		const tank2PositionEl = document.getElementById("tank2-position");
+		tank2PositionEl.innerText = `(${Math.round(this.tank2.x)}, ${Math.round(
+			this.tank2.y
+		)})`;
 
 		this.healthBar2.x = this.tank2.x;
 		this.healthBar2.y = this.tank2.y;
-		document.getElementById('tank2-health-bar-position').innerText = `(${Math.floor(this.healthBar2.x)}, ${Math.floor(this.healthBar2.y)})`;
+		document.getElementById(
+			"tank2-health-bar-position"
+		).innerText = `(${Math.floor(this.healthBar2.x)}, ${Math.floor(
+			this.healthBar2.y
+		)})`;
 
 		// If the tank is at the top edge of the screen, move its health bar to the bottom edge of the tank
-		if (this.tank2.y < (this.tank2.height / 2) + this.sys.game.config.healthBarOffset + this.sys.game.config.healthBarHeight ) {
-			this.healthBar2.offset = (this.sys.game.config.healthBarOffset * -1) - this.tank2.height - this.sys.game.config.healthBarHeight;
+		if (
+			this.tank2.y <
+			this.tank2.height / 2 +
+				this.sys.game.config.healthBarOffset +
+				this.sys.game.config.healthBarHeight
+		) {
+			this.healthBar2.offset =
+				this.sys.game.config.healthBarOffset * -1 -
+				this.tank2.height -
+				this.sys.game.config.healthBarHeight;
 		} else {
 			this.healthBar2.offset = this.sys.game.config.healthBarOffset;
 		}
 
 		// Tank1 shooting
 		if (this.tank1Keys.V.isDown && this.canFireTank1) {
-				this.shootBullet(this.tank1, 'tank1');
-				this.canFireTank1 = false; // Prevent firing until cooldown
-				this.time.delayedCall(this.fireRate, () => {
-						this.canFireTank1 = true; // Allow firing again after cooldown
-				});
+			this.shootBullet(this.tank1, "tank1");
+			this.canFireTank1 = false; // Prevent firing until cooldown
+			this.time.delayedCall(this.fireRate, () => {
+				this.canFireTank1 = true; // Allow firing again after cooldown
+			});
 		}
 
 		// Tank2 shooting
 		if (this.tank2Keys.ENTER.isDown && this.canFireTank2) {
-				this.shootBullet(this.tank2, 'tank2');
-				this.canFireTank2 = false; // Prevent firing until cooldown
-				this.time.delayedCall(this.fireRate, () => {
-						this.canFireTank2 = true; // Allow firing again after cooldown
-				});
+			this.shootBullet(this.tank2, "tank2");
+			this.canFireTank2 = false; // Prevent firing until cooldown
+			this.time.delayedCall(this.fireRate, () => {
+				this.canFireTank2 = true; // Allow firing again after cooldown
+			});
 		}
 
 		// Health regeneration in base
@@ -639,7 +938,7 @@ class BootScene extends Phaser.Scene {
 
 	shootBullet(tank, tankName) {
 		const bulletWidth = this.sys.game.config.bulletWidth; // Access bullet width from config
-		const bullet = this.physics.add.sprite(tank.x, tank.y, 'bullet');
+		const bullet = this.physics.add.sprite(tank.x, tank.y, "bullet");
 		bullet.setDisplaySize(bulletWidth, bulletWidth); // Set the size of the bullet
 
 		// Set a circular hitbox for the bullet
@@ -651,8 +950,8 @@ class BootScene extends Phaser.Scene {
 		// Calculate bullet velocity based on tank rotation
 		const bulletSpeed = 300; // Set bullet speed
 		bullet.setVelocity(
-				Math.cos(tank.rotation) * bulletSpeed,
-				Math.sin(tank.rotation) * bulletSpeed
+			Math.cos(tank.rotation) * bulletSpeed,
+			Math.sin(tank.rotation) * bulletSpeed
 		);
 
 		// Set the bullet's rotation to match the tank's rotation
@@ -662,18 +961,30 @@ class BootScene extends Phaser.Scene {
 		this.fireSound.play();
 
 		// Add overlap detection for hitting tanks
-		if (tankName === 'tank1') {
-				this.physics.add.overlap(bullet, this.tank2, this.hitTank2, null, this);
+		if (tankName === "tank1") {
+			this.physics.add.overlap(
+				bullet,
+				this.tank2,
+				this.hitTank2,
+				null,
+				this
+			);
 		} else {
-				this.physics.add.overlap(bullet, this.tank1, this.hitTank1, null, this);
+			this.physics.add.overlap(
+				bullet,
+				this.tank1,
+				this.hitTank1,
+				null,
+				this
+			);
 		}
 
 		// Bullet collides with bush
 		this.physics.add.collider(bullet, this.bushGroup, (bullet, bush) => {
-				// Play bushHit sound
-				this.bushHit.play();
-				bush.destroy(); // Also destroy the original bush block
-				bullet.destroy(); // Destroy the bullet
+			// Play bushHit sound
+			this.bushHit.play();
+			bush.destroy(); // Also destroy the original bush block
+			bullet.destroy(); // Destroy the bullet
 		});
 
 		// Bullet collides with trunk
@@ -705,55 +1016,68 @@ class BootScene extends Phaser.Scene {
 
 	checkTank1Health() {
 		if (this.tank1Health <= 0) {
-				if (this.tank1) { // Check if tank1 exists
-						this.explodeTank(this.tank1);
-						this.tank2Kills += 1;
-						tank2KillsEl.innerText = `${this.tank2Kills}`;
-						this.resetTank(this.tank1, 'tank1');
-						//this.resetTank(this.tank2, 'tank2');
-						this.tank1Health = 100;
-						tank1HealthEl.innerText = `${this.tank1Health}%`;
-						this.checkWinCondition('tank2');
+			if (this.tank1) {
+				// Check if tank1 exists
+				this.explodeTank(this.tank1);
+				this.tank2Kills += 1;
+				tank2KillsEl.innerText = `${this.tank2Kills}`;
+				this.resetTank(this.tank1, "tank1");
+				this.showCountdown();
+				//this.resetTank(this.tank2, 'tank2');
+				this.tank1Health = 100;
+				tank1HealthEl.innerText = `${this.tank1Health}%`;
+				this.checkWinCondition("tank2");
+				gameReady = false;
 
-						// Fade out the tank1 camera then fade back in
-						this.camera1.fadeOut(500, 0, 0, 0);
-						this.camera1.fadeIn(5000, 0, 0, 0);
-				}
+				// Fade out the tank1 camera then fade back in
+				this.camera1.fadeOut(500, 0, 0, 0);
+				this.camera1.fadeIn(5000, 0, 0, 0);
+			}
 		}
 	}
 
 	checkTank2Health() {
 		if (this.tank2Health <= 0) {
-				if (this.tank2) { // Check if tank2 exists
-						this.explodeTank(this.tank2);
-						this.tank1Kills += 1;
-						tank1KillsEl.innerText = `${this.tank1Kills}`;
-						this.resetTank(this.tank2, 'tank2');
-						//this.resetTank(this.tank1, 'tank1');
-						this.tank2Health = 100;
-						tank2HealthEl.innerText = `${this.tank2Health}%`;
-						this.checkWinCondition('tank1');
+			if (this.tank2) {
+				// Check if tank2 exists
+				this.explodeTank(this.tank2);
+				this.tank1Kills += 1;
+				tank1KillsEl.innerText = `${this.tank1Kills}`;
+				this.resetTank(this.tank2, "tank2");
+				this.showCountdown();
+				//this.resetTank(this.tank1, 'tank1');
+				this.tank2Health = 100;
+				tank2HealthEl.innerText = `${this.tank2Health}%`;
+				this.checkWinCondition("tank1");
+				gameReady = false;
 
-						// Fade out the tank2 camera then fade back in
-						this.camera2.fadeOut(500, 0, 0, 0);
-						this.camera2.fadeIn(5000, 0, 0, 0);
+				// Fade out the tank2 camera then fade back in if two player mode is on
+				if (isTwoPlayerMode) {
+					this.camera2.fadeOut(500, 0, 0, 0);
+					this.camera2.fadeIn(5000, 0, 0, 0);
 				}
+			}
 		}
 	}
 
 	explodeTank(tank) {
 		// Create the explosion at the tank's position
-		const explosion = this.add.sprite(tank.x, tank.y, 'explosion');
+		const explosion = this.add.sprite(tank.x, tank.y, "explosion");
 		explosion.setScale(2);
-		
+
 		// Delay before destroying the explosion to allow the animation to play
-		this.time.delayedCall(1000, () => { // Adjust the delay as needed
-				explosion.destroy();
+		this.time.delayedCall(1000, () => {
+			// Adjust the delay as needed
+			explosion.destroy();
 		});
 
 		// Clear surrounding bush
 		this.bushGroup.children.iterate((bush) => {
-			if (bush && Phaser.Math.Distance.Between(tank.x, tank.y, bush.x, bush.y) < 200) {
+			if (
+				bush &&
+				Phaser.Math.Distance.Between(tank.x, tank.y, bush.x, bush.y) <
+					200
+			) {
 				bush.destroy(); // Ensure bush exists before trying to destroy it
 			}
 		});
@@ -763,7 +1087,7 @@ class BootScene extends Phaser.Scene {
 
 	// Reset tank to the center of its base with rotation set to 0
 	resetTank(tank, tankName) {
-		if (tankName === 'tank1') {
+		if (tankName === "tank1") {
 			tank.enableBody(true, 50, 300, true, true);
 			tank.x = this.base1.x;
 			tank.y = this.base1.y;
@@ -780,51 +1104,95 @@ class BootScene extends Phaser.Scene {
 		const baseWidth = this.sys.game.config.baseWidth;
 
 		// Tank1 in own base
-		if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank1.getBounds(), this.base1.getBounds())) {
+		if (
+			Phaser.Geom.Intersects.RectangleToRectangle(
+				this.tank1.getBounds(),
+				this.base1.getBounds()
+			)
+		) {
 			if (this.tank1Health < 100) {
-				if (this.tank1.getBounds().x >= this.base1.x - baseWidth / 2 &&
-					this.tank1.getBounds().x + this.tank1.getBounds().width <= this.base1.x + baseWidth / 2 &&
+				if (
+					this.tank1.getBounds().x >= this.base1.x - baseWidth / 2 &&
+					this.tank1.getBounds().x + this.tank1.getBounds().width <=
+						this.base1.x + baseWidth / 2 &&
 					this.tank1.getBounds().y >= this.base1.y - baseWidth / 2 &&
-					this.tank1.getBounds().y + this.tank1.getBounds().height <= this.base1.y + baseWidth / 2) {
+					this.tank1.getBounds().y + this.tank1.getBounds().height <=
+						this.base1.y + baseWidth / 2
+				) {
 					this.tank1Health += this.sys.game.config.homeBaseRegenRate;
-					tank1HealthEl.innerText = `${Math.floor(this.tank1Health)}%`;
+					tank1HealthEl.innerText = `${Math.floor(
+						this.tank1Health
+					)}%`;
 				}
 			}
 		}
 		// Tank1 in enemy base
-		else if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank1.getBounds(), this.base2.getBounds())) {
+		else if (
+			Phaser.Geom.Intersects.RectangleToRectangle(
+				this.tank1.getBounds(),
+				this.base2.getBounds()
+			)
+		) {
 			if (this.tank1Health < 100) {
-				if (this.tank1.getBounds().x >= this.base2.x - baseWidth / 2 &&
-					this.tank1.getBounds().x + this.tank1.getBounds().width <= this.base2.x + baseWidth / 2 &&
+				if (
+					this.tank1.getBounds().x >= this.base2.x - baseWidth / 2 &&
+					this.tank1.getBounds().x + this.tank1.getBounds().width <=
+						this.base2.x + baseWidth / 2 &&
 					this.tank1.getBounds().y >= this.base2.y - baseWidth / 2 &&
-					this.tank1.getBounds().y + this.tank1.getBounds().height <= this.base2.y + baseWidth / 2) {
+					this.tank1.getBounds().y + this.tank1.getBounds().height <=
+						this.base2.y + baseWidth / 2
+				) {
 					this.tank1Health += this.sys.game.config.enemyBaseRegenRate;
-					tank1HealthEl.innerText = `${Math.floor(this.tank1Health)}%`;
+					tank1HealthEl.innerText = `${Math.floor(
+						this.tank1Health
+					)}%`;
 				}
 			}
 		}
 
 		// Tank2 in own base
-		if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank2.getBounds(), this.base2.getBounds())) {
+		if (
+			Phaser.Geom.Intersects.RectangleToRectangle(
+				this.tank2.getBounds(),
+				this.base2.getBounds()
+			)
+		) {
 			if (this.tank2Health < 100) {
-				if (this.tank2.getBounds().x >= this.base2.x - baseWidth / 2 &&
-					this.tank2.getBounds().x + this.tank2.getBounds().width <= this.base2.x + baseWidth / 2 &&
+				if (
+					this.tank2.getBounds().x >= this.base2.x - baseWidth / 2 &&
+					this.tank2.getBounds().x + this.tank2.getBounds().width <=
+						this.base2.x + baseWidth / 2 &&
 					this.tank2.getBounds().y >= this.base2.y - baseWidth / 2 &&
-					this.tank2.getBounds().y + this.tank2.getBounds().height <= this.base2.y + baseWidth / 2) {
+					this.tank2.getBounds().y + this.tank2.getBounds().height <=
+						this.base2.y + baseWidth / 2
+				) {
 					this.tank2Health += this.sys.game.config.homeBaseRegenRate;
-					tank2HealthEl.innerText = `${Math.floor(this.tank2Health)}%`;
+					tank2HealthEl.innerText = `${Math.floor(
+						this.tank2Health
+					)}%`;
 				}
 			}
 		}
 		// Tank2 in enemy base
-		else if (Phaser.Geom.Intersects.RectangleToRectangle(this.tank2.getBounds(), this.base1.getBounds())) {
+		else if (
+			Phaser.Geom.Intersects.RectangleToRectangle(
+				this.tank2.getBounds(),
+				this.base1.getBounds()
+			)
+		) {
 			if (this.tank2Health < 100) {
-				if (this.tank2.getBounds().x >= this.base1.x - baseWidth / 2 &&
-					this.tank2.getBounds().x + this.tank2.getBounds().width <= this.base1.x + baseWidth / 2 &&
+				if (
+					this.tank2.getBounds().x >= this.base1.x - baseWidth / 2 &&
+					this.tank2.getBounds().x + this.tank2.getBounds().width <=
+						this.base1.x + baseWidth / 2 &&
 					this.tank2.getBounds().y >= this.base1.y - baseWidth / 2 &&
-					this.tank2.getBounds().y + this.tank2.getBounds().height <= this.base1.y + baseWidth / 2) {
+					this.tank2.getBounds().y + this.tank2.getBounds().height <=
+						this.base1.y + baseWidth / 2
+				) {
 					this.tank2Health += this.sys.game.config.enemyBaseRegenRate;
-					tank2HealthEl.innerText = `${Math.floor(this.tank2Health)}%`;
+					tank2HealthEl.innerText = `${Math.floor(
+						this.tank2Health
+					)}%`;
 				}
 			}
 		}
@@ -838,10 +1206,10 @@ class BootScene extends Phaser.Scene {
 			this.fireSound.stop();
 			this.tankHit.stop();
 			this.bushHit.stop();
-			
+
 			// Use a setTimeout to ensure all sounds have stopped before showing the alert
 			setTimeout(() => {
-				alert('Tank 1 Wins!');
+				alert("Tank 1 Wins!");
 				this.scene.restart();
 				this.resetScores();
 			}, 100);
@@ -851,10 +1219,10 @@ class BootScene extends Phaser.Scene {
 			this.fireSound.stop();
 			this.tankHit.stop();
 			this.bushHit.stop();
-			
+
 			// Use a setTimeout to ensure all sounds have stopped before showing the alert
 			setTimeout(() => {
-				alert('Tank 2 Wins!');
+				alert("Tank 2 Wins!");
 				this.scene.restart();
 				this.resetScores();
 			}, 100);
@@ -878,7 +1246,7 @@ class BootScene extends Phaser.Scene {
 	}
 
 	shutdown() {
-		window.removeEventListener('resize', this.updateCameraSizes);
+		window.removeEventListener("resize", this.updateCameraSizes);
 		// ... any other cleanup code ...
 	}
 
@@ -891,29 +1259,33 @@ class BootScene extends Phaser.Scene {
 
 		// Calculate distance to player
 		const distanceToPlayer = Phaser.Math.Distance.Between(
-			this.tank1.x, this.tank1.y,
-			this.tank2.x, this.tank2.y
+			this.tank1.x,
+			this.tank1.y,
+			this.tank2.x,
+			this.tank2.y
 		);
 
 		// Determine AI state
 		if (this.tank2Health <= this.aiRetreatHealth) {
-			this.aiState = 'retreat';
-		} else if (distanceToPlayer <= this.aiMaxAttackDistance && 
-				   distanceToPlayer >= this.aiMinAttackDistance) {
-			this.aiState = 'attack';
+			this.aiState = "retreat";
+		} else if (
+			distanceToPlayer <= this.aiMaxAttackDistance &&
+			distanceToPlayer >= this.aiMinAttackDistance
+		) {
+			this.aiState = "attack";
 		} else {
-			this.aiState = 'chase';
+			this.aiState = "chase";
 		}
 
 		// Execute AI behavior based on state
 		switch (this.aiState) {
-			case 'retreat':
+			case "retreat":
 				this.aiRetreat();
 				break;
-			case 'attack':
+			case "attack":
 				this.aiAttack();
 				break;
-			case 'chase':
+			case "chase":
 				this.aiChase();
 				break;
 		}
@@ -923,8 +1295,14 @@ class BootScene extends Phaser.Scene {
 		// Check if there are any trunks nearby
 		let shouldAvoid = false;
 		this.trunkGroup.children.iterate((trunk) => {
-			const distanceToTrunk = Phaser.Math.Distance.Between(this.tank2.x, this.tank2.y, trunk.x, trunk.y);
-			if (distanceToTrunk < 100) { // Adjust this distance as needed
+			const distanceToTrunk = Phaser.Math.Distance.Between(
+				this.tank2.x,
+				this.tank2.y,
+				trunk.x,
+				trunk.y
+			);
+			if (distanceToTrunk < 100) {
+				// Adjust this distance as needed
 				shouldAvoid = true;
 			}
 		});
@@ -941,62 +1319,68 @@ class BootScene extends Phaser.Scene {
 		// Constants
 		const avoidDistance = 100; // Distance to start avoiding trunks
 		const avoidStrength = 200; // Strength of avoidance force
-	
+
 		// Initialize cumulative avoidance vector
 		let avoidanceX = 0;
 		let avoidanceY = 0;
-	
+
 		// Iterate over all trunks
 		this.trunkGroup.children.iterate((trunk) => {
 			const distanceToTrunk = Phaser.Math.Distance.Between(
-				this.tank2.x, this.tank2.y,
-				trunk.x, trunk.y
+				this.tank2.x,
+				this.tank2.y,
+				trunk.x,
+				trunk.y
 			);
-	
-			if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) { // Avoid division by zero
+
+			if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) {
+				// Avoid division by zero
 				// Calculate vector pointing away from the trunk, inversely proportional to the distance squared
 				const dx = this.tank2.x - trunk.x;
 				const dy = this.tank2.y - trunk.y;
 				const distanceSquared = distanceToTrunk * distanceToTrunk;
-	
+
 				// Accumulate the avoidance vector
-				avoidanceX += (dx / distanceSquared);
-				avoidanceY += (dy / distanceSquared);
+				avoidanceX += dx / distanceSquared;
+				avoidanceY += dy / distanceSquared;
 			}
 		});
-	
+
 		// Determine the vector towards the player
 		const targetVector = new Phaser.Math.Vector2(
 			this.tank1.x - this.tank2.x,
 			this.tank1.y - this.tank2.y
 		).normalize();
-	
+
 		// Apply avoidance if necessary
 		let movementVector = targetVector.clone(); // Start with the target vector
-	
+
 		if (avoidanceX !== 0 || avoidanceY !== 0) {
 			// Normalize the avoidance vector
-			const avoidanceVector = new Phaser.Math.Vector2(avoidanceX, avoidanceY).normalize();
-	
+			const avoidanceVector = new Phaser.Math.Vector2(
+				avoidanceX,
+				avoidanceY
+			).normalize();
+
 			// Scale the avoidance vector
 			avoidanceVector.scale(avoidStrength);
-	
+
 			// Combine the target direction and avoidance vector
 			movementVector.add(avoidanceVector).normalize();
 		}
-	
+
 		// Adjust the tank's rotation to face the movement direction smoothly
 		const desiredAngle = movementVector.angle();
 		let currentRotation = this.tank2.rotation;
-	
+
 		// Custom function to wrap angles between -π and π
 		function wrapAngle(angle) {
 			return Math.atan2(Math.sin(angle), Math.cos(angle));
 		}
-	
+
 		// Calculate the shortest rotation direction
 		let rotationDiff = wrapAngle(desiredAngle - currentRotation);
-	
+
 		// Determine turn direction and rotate
 		const rotationSpeed = this.sys.game.config.tankTurnSpeed;
 		if (rotationDiff > 0.05) {
@@ -1004,15 +1388,16 @@ class BootScene extends Phaser.Scene {
 		} else if (rotationDiff < -0.05) {
 			this.tank2.rotation -= Math.min(rotationSpeed, -rotationDiff);
 		}
-	
+
 		// Optionally move the tank slightly to adjust position
 		// this.tank2.setVelocityX(...);
 		// this.tank2.setVelocityY(...);
-	
+
 		// Shooting logic
-		if (Math.abs(rotationDiff) < 0.1) { // If facing the player
+		if (Math.abs(rotationDiff) < 0.1) {
+			// If facing the player
 			if (this.canFireTank2) {
-				this.shootBullet(this.tank2, 'tank2');
+				this.shootBullet(this.tank2, "tank2");
 				this.canFireTank2 = false;
 				this.time.delayedCall(this.fireRate, () => {
 					this.canFireTank2 = true;
@@ -1023,7 +1408,6 @@ class BootScene extends Phaser.Scene {
 			this.tank2.setVelocity(0);
 		}
 	}
-	
 
 	aiChase() {
 		const stopDistance = 0; // Continue moving towards the player
@@ -1053,69 +1437,77 @@ class BootScene extends Phaser.Scene {
 		// Constants
 		const avoidDistance = 100; // Distance to start avoiding trunks
 		const avoidStrength = 200; // Strength of avoidance force
-	
+
 		// Calculate distance to target
 		const distanceToTarget = Phaser.Math.Distance.Between(
-			this.tank2.x, this.tank2.y,
-			targetX, targetY
+			this.tank2.x,
+			this.tank2.y,
+			targetX,
+			targetY
 		);
-	
+
 		if (distanceToTarget > stopDistance) {
 			// Initialize cumulative avoidance vector
 			let avoidanceX = 0;
 			let avoidanceY = 0;
-	
+
 			// Iterate over all trunks
 			this.trunkGroup.children.iterate((trunk) => {
 				const distanceToTrunk = Phaser.Math.Distance.Between(
-					this.tank2.x, this.tank2.y,
-					trunk.x, trunk.y
+					this.tank2.x,
+					this.tank2.y,
+					trunk.x,
+					trunk.y
 				);
-	
-				if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) { // Avoid division by zero
+
+				if (distanceToTrunk < avoidDistance && distanceToTrunk > 0) {
+					// Avoid division by zero
 					// Calculate vector pointing away from the trunk, inversely proportional to the distance squared
 					const dx = this.tank2.x - trunk.x;
 					const dy = this.tank2.y - trunk.y;
 					const distanceSquared = distanceToTrunk * distanceToTrunk;
-	
+
 					// Accumulate the avoidance vector
-					avoidanceX += (dx / distanceSquared);
-					avoidanceY += (dy / distanceSquared);
+					avoidanceX += dx / distanceSquared;
+					avoidanceY += dy / distanceSquared;
 				}
 			});
-	
+
 			// Determine the tank's desired movement towards the target
 			const targetVector = new Phaser.Math.Vector2(
 				targetX - this.tank2.x,
 				targetY - this.tank2.y
 			).normalize();
-	
+
 			// Apply avoidance if necessary
 			let movementVector = targetVector.clone(); // Start with the target vector
-	
+
 			if (avoidanceX !== 0 || avoidanceY !== 0) {
 				// Normalize the avoidance vector
-				const avoidanceVector = new Phaser.Math.Vector2(avoidanceX, avoidanceY).normalize();
-	
+				const avoidanceVector = new Phaser.Math.Vector2(
+					avoidanceX,
+					avoidanceY
+				).normalize();
+
 				// Scale the avoidance vector
 				avoidanceVector.scale(avoidStrength);
-	
+
 				// Combine the target direction and avoidance vector
 				movementVector.add(avoidanceVector).normalize();
 			}
-	
+
 			// Adjust the tank's rotation to face the movement direction smoothly
 			const desiredAngle = movementVector.angle();
 			let currentRotation = this.tank2.rotation;
-	
+
 			// Custom function to wrap angles between -π and π
 			function wrapAngle(angle) {
 				return Math.atan2(Math.sin(angle), Math.cos(angle));
 			}
-	
+
 			// Calculate the shortest rotation direction
 			let rotationDiff = wrapAngle(desiredAngle - currentRotation);
-	
+
 			// Determine turn direction and rotate
 			const rotationSpeed = this.sys.game.config.tankTurnSpeed;
 			if (rotationDiff > 0.05) {
@@ -1123,16 +1515,21 @@ class BootScene extends Phaser.Scene {
 			} else if (rotationDiff < -0.05) {
 				this.tank2.rotation -= Math.min(rotationSpeed, -rotationDiff);
 			}
-	
+
 			// Move the tank forward in the direction it's facing
-			this.tank2.setVelocityX(Math.cos(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
-			this.tank2.setVelocityY(Math.sin(this.tank2.rotation) * this.sys.game.config.tankForwardSpeed);
+			this.tank2.setVelocityX(
+				Math.cos(this.tank2.rotation) *
+					this.sys.game.config.tankForwardSpeed
+			);
+			this.tank2.setVelocityY(
+				Math.sin(this.tank2.rotation) *
+					this.sys.game.config.tankForwardSpeed
+			);
 		} else {
 			// Stop moving when close to the target
 			this.tank2.setVelocity(0);
 		}
 	}
-
 }
 
 class HealthBar {
@@ -1163,10 +1560,16 @@ class HealthBar {
 		this.graphics.setDepth(4);
 
 		// Draw health bar
-		this.graphics.fillStyle(Phaser.Display.Color.GetColor(color.r, color.g, color.b), this.opacity);
+		this.graphics.fillStyle(
+			Phaser.Display.Color.GetColor(color.r, color.g, color.b),
+			this.opacity
+		);
 		this.graphics.fillRect(
 			this.x - this.scene.sys.game.config.tankWidth / 2,
-			this.y - this.scene.sys.game.config.tankWidth / 2 - this.height - this.offset,
+			this.y -
+				this.scene.sys.game.config.tankWidth / 2 -
+				this.height -
+				this.offset,
 			this.scene.sys.game.config.tankWidth * this.health,
 			this.height
 		);
@@ -1175,7 +1578,10 @@ class HealthBar {
 		this.graphics.lineStyle(1, 0x00ff00, 1); // Green border
 		this.graphics.strokeRect(
 			this.x - this.scene.sys.game.config.tankWidth / 2,
-			this.y - this.scene.sys.game.config.tankWidth / 2 - this.height - this.offset,
+			this.y -
+				this.scene.sys.game.config.tankWidth / 2 -
+				this.height -
+				this.offset,
 			this.scene.sys.game.config.tankWidth,
 			this.height
 		);
@@ -1195,15 +1601,8 @@ class Tree {
 }
 
 function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
-    }
+	for (let i = array.length - 1; i > 0; i--) {
+		const j = Math.floor(Math.random() * (i + 1));
+		[array[i], array[j]] = [array[j], array[i]]; // Swap elements
+	}
 }
-
-let isTwoPlayerMode = false;
-
-document.getElementById('mode-toggle-btn').addEventListener('click', function() {
-    isTwoPlayerMode = !isTwoPlayerMode; // Toggle the mode
-    this.textContent = isTwoPlayerMode ? 'Two Player' : 'Single Player'; // Update button text
-});
