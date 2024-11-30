@@ -1023,9 +1023,11 @@ class BootScene extends Phaser.Scene {
 				tank2KillsEl.innerText = `${this.tank2Kills}`;
 				this.resetTank(this.tank1, "tank1");
 				this.showCountdown();
-				//this.resetTank(this.tank2, 'tank2');
+				this.resetTank(this.tank2, "tank2");
 				this.tank1Health = 100;
+				this.tank2Health = 100;
 				tank1HealthEl.innerText = `${this.tank1Health}%`;
+				tank2HealthEl.innerText = `${this.tank2Health}%`;
 				this.checkWinCondition("tank2");
 				gameReady = false;
 
@@ -1045,9 +1047,11 @@ class BootScene extends Phaser.Scene {
 				tank1KillsEl.innerText = `${this.tank1Kills}`;
 				this.resetTank(this.tank2, "tank2");
 				this.showCountdown();
-				//this.resetTank(this.tank1, 'tank1');
+				this.resetTank(this.tank1, "tank1");
 				this.tank2Health = 100;
+				this.tank1Health = 100;
 				tank2HealthEl.innerText = `${this.tank2Health}%`;
+				tank1HealthEl.innerText = `${this.tank1Health}%`;
 				this.checkWinCondition("tank1");
 				gameReady = false;
 
